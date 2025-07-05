@@ -4,3 +4,4 @@ whisper
 sounddevice
 scipy
 requests
+huggingface_hub
