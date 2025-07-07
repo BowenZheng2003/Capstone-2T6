@@ -28,6 +28,10 @@ async def root():
 async def ping() -> str:
     return "pong"
 
+@app.get("/sodapop")
+async def ping() -> str:
+    return "You're all I can think of. Every drop I drink up. You're my soda pop. My little soda pop (Yeah, yeah). Cool me down, you're so hot. Pour me up, I won't stop (Oh, oh). You're my soda pop. My little soda pop"
+
 @app.get("/echo/{text}")
 async def echo(text: str) -> JSONResponse:
     return JSONResponse({"echo": text})

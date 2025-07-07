@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LandingPage from './components/landing_page.js';
 
 function App() {
   // Change this if your FastAPI is not on localhost:8000
@@ -62,68 +63,74 @@ function App() {
     }
   };
 
+  // return (
+  //   <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
+  //     <h1>FastAPI ↔️ React</h1>
+
+  //     {/* GET / */}
+  //     <div style={{ marginBottom: '20px' }}>
+  //       <button onClick={fetchRoot} style={{ padding: '8px 16px' }}>
+  //         Get “/”
+  //       </button>
+  //       {rootMessage && (
+  //         <p>
+  //           <strong>Response:</strong> {rootMessage}
+  //         </p>
+  //       )}
+  //     </div>
+
+  //     {/* GET /ping */}
+  //     <div style={{ marginBottom: '20px' }}>
+  //       <button onClick={fetchPing} style={{ padding: '8px 16px' }}>
+  //         Get /ping
+  //       </button>
+  //       {pingResponse && (
+  //         <p>
+  //           <strong>Response:</strong> {pingResponse}
+  //         </p>
+  //       )}
+  //     </div>
+
+  //     {/* GET /transcribe */}
+  //     <div style={{ marginBottom: '20px' }}>
+  //       <button onClick={fetchTranscribe} style={{ padding: '8px 16px' }}>
+  //         Get /transcription
+  //       </button>
+  //       {transcriptResponse && (
+  //         <p>
+  //           <strong>Response:</strong> {transcriptResponse}
+  //         </p>
+  //       )}
+  //     </div>
+
+  //     {/* GET /echo/{text} */}
+  //     <div>
+  //       <input
+  //         type="text"
+  //         value={echoText}
+  //         onChange={(e) => setEchoText(e.target.value)}
+  //         placeholder="Type something to echo"
+  //         style={{
+  //           padding: '8px',
+  //           width: '200px',
+  //           marginRight: '8px',
+  //         }}
+  //       />
+  //       <button onClick={fetchEcho} style={{ padding: '8px 16px' }}>
+  //         Get /echo
+  //       </button>
+  //       {echoResponse && (
+  //         <p>
+  //           <strong>Response:</strong> {echoResponse}
+  //         </p>
+  //       )}
+  //     </div>
+  //   </div>
+  // )
   return (
-    <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
-      <h1>FastAPI ↔️ React</h1>
-
-      {/* GET / */}
-      <div style={{ marginBottom: '20px' }}>
-        <button onClick={fetchRoot} style={{ padding: '8px 16px' }}>
-          Get “/”
-        </button>
-        {rootMessage && (
-          <p>
-            <strong>Response:</strong> {rootMessage}
-          </p>
-        )}
-      </div>
-
-      {/* GET /ping */}
-      <div style={{ marginBottom: '20px' }}>
-        <button onClick={fetchPing} style={{ padding: '8px 16px' }}>
-          Get /ping
-        </button>
-        {pingResponse && (
-          <p>
-            <strong>Response:</strong> {pingResponse}
-          </p>
-        )}
-      </div>
-
-      {/* GET /transcribe */}
-      <div style={{ marginBottom: '20px' }}>
-        <button onClick={fetchTranscribe} style={{ padding: '8px 16px' }}>
-          Get /transcription
-        </button>
-        {transcriptResponse && (
-          <p>
-            <strong>Response:</strong> {transcriptResponse}
-          </p>
-        )}
-      </div>
-
-      {/* GET /echo/{text} */}
-      <div>
-        <input
-          type="text"
-          value={echoText}
-          onChange={(e) => setEchoText(e.target.value)}
-          placeholder="Type something to echo"
-          style={{
-            padding: '8px',
-            width: '200px',
-            marginRight: '8px',
-          }}
-        />
-        <button onClick={fetchEcho} style={{ padding: '8px 16px' }}>
-          Get /echo
-        </button>
-        {echoResponse && (
-          <p>
-            <strong>Response:</strong> {echoResponse}
-          </p>
-        )}
-      </div>
+    <div>
+      <LandingPage />
+      {/* You can include the API testing UI here conditionally or on another page */}
     </div>
   );
 }
