@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useRef } from 'react';
+
 import './LandingPage.css'; // optional if using CSS
 import top_left from '../assets/Group 1.svg';
 import bottom_left from '../assets/Group 3.svg';
@@ -6,15 +7,38 @@ import bottom_left from '../assets/Group 3.svg';
 import right from '../assets/Group 2.svg';
 
 function LandingPage() {
-    const handleGetStarted = async () => {
+    const fileInputRef = useRef(null);
+
+  const handleGetStarted = () => {
+    // Trigger the hidden file input
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file); // FastAPI should expect this as 'file'
+
     try {
-      const res = await fetch('http://localhost:8000/sodapop'); // Replace with your actual endpoint
-      const data = await res.text(); // or res.json() if the response is JSON
-      console.log('API Response:', data);
-      alert(`Response: ${data}`);
-    } catch (error) {
-      console.error('API call failed:', error);
-      alert('Error making API call');
+      const response = await fetch('http://localhost:8000/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.text(); // Or .json() if you return JSON
+      alert(`Response: You're all I can think of
+            Every drop I drink up
+            You're my soda pop
+            My little soda pop (Yeah, yeah)
+            Cool me down, you're so hot
+            Pour me up, I won't stop (Oh, oh)
+            You're my soda pop
+            My little soda pop`);
+    } catch (err) {
+      console.error('File upload failed:', err);
+      alert('File upload failed.');
     }
   };
   
@@ -30,6 +54,12 @@ function LandingPage() {
         <p>You're my soda pop</p>
         <p>My little soda pop</p>
         <button onClick={handleGetStarted}>Get Started</button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
       </header>
 
       <section className="features">

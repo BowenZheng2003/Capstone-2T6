@@ -2,6 +2,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi import FastAPI, File, UploadFile
 
 from whisper_testing import transcribe_audio
 
@@ -40,3 +41,9 @@ async def echo(text: str) -> JSONResponse:
 async def transcribe() -> str:
     transcription = transcribe_audio("MacBeth_Voiceover.mp3")
     return transcription
+
+@app.post("/upload")
+async def upload_file(file: UploadFile = File(...)):
+    contents = await file.read()
+    # Process the file here
+    return {"filename": file.filename, "size": len(contents)}
