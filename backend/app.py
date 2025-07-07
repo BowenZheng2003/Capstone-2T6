@@ -9,7 +9,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost:3000",                        # for local React dev
-    "https://capstone-backend-test.onrender.com", # if you deploy frontend to Render
+    #"https://capstone-backend-test.onrender.com", # if you deploy frontend to Render
 ]
 
 app.add_middleware(
@@ -22,7 +22,7 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    return JSONResponse({"message": "Hello, World from FastAPI on Render!"})
+    return JSONResponse({"message": "Hi Divas!"})
 
 @app.get("/ping")
 async def ping() -> str:
