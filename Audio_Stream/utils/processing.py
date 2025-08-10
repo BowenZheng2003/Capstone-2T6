@@ -93,9 +93,9 @@ def create_json_output(merged_df, target_columns, join_col="timestamp"):
     Create a JSON output from a merged DataFrame, always including the join column.
     
     Parameters:
-        merged_df (pd.DataFrame): Merged DataFrame.
-        target_columns (list[str]): Columns to keep (besides join_col).
-        join_col (str): Column name to always include (default "timestamp").
+        merged_df (pd.DataFrame, mandatory): Merged DataFrame.
+        target_columns (list[str], mandatory): Columns to keep (besides join_col).
+        join_col (str, optional): Column name to always include (default "timestamp").
     
     Returns:
         str: JSON string.
