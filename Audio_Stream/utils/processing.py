@@ -88,19 +88,18 @@ def merge_on_timestamp(dfs, target_columns, join_col="timestamp"):
 
     return merged_df
 
-def create_json_output(merged_df, target_columns):
+def create_json_output(merged_df, target_columns, join_col="timestamp"):
     """
-    Create a JSON output from a merged DataFrame.
+    Create a JSON output from a merged DataFrame, always including the join column.
     
     Parameters:
-        merged_df (pd.DataFrame, mandatory): Merged DataFrame.
-        target_columns (list[str], mandatory): Columns to keep.
+        merged_df (pd.DataFrame): Merged DataFrame.
+        target_columns (list[str]): Columns to keep (besides join_col).
+        join_col (str): Column name to always include (default "timestamp").
     
     Returns:
         str: JSON string.
     """
-    # Keep only the target columns you want
-    records = merged_df[target_columns].to_dict(orient="records")
-
-    # Pretty-print as JSON
+    cols_to_keep = [join_col] + target_columns
+    records = merged_df[cols_to_keep].to_dict(orient="records")
     return json.dumps(records, indent=2)
