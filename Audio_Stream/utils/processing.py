@@ -2,7 +2,7 @@ import os
 import json
 import pandas as pd
 import opensmile
-
+from pydub import AudioSegment
 
 
 # Initialize OpenSMILE
@@ -27,6 +27,7 @@ def segment_audio(audio, feature_cols, segment_duration_ms=3000, step_size=1500)
 
     segments = []
     file_id = "segmented_audio"
+    audio = AudioSegment.from_wav(audio)
 
     # Segment audio
     for i in range(0, len(audio) - segment_duration_ms + 1, step_size):
@@ -50,7 +51,7 @@ def segment_audio(audio, feature_cols, segment_duration_ms=3000, step_size=1500)
             feature_row[col] = features.get(col)
 
         segments.append(feature_row)
-
+    
     return segments
 
 def merge_on_timestamp(dfs, target_columns, join_col="timestamp"):
