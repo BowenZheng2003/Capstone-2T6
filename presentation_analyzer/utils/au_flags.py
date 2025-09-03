@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Compute 5 AU cluster flags per frame from a Py-Feat AU CSV and output JSON.
+Compute 4 AU cluster flags per frame from a Py-Feat AU CSV and output JSON.
 Also copies emotion columns (anger, disgust, fear, happiness, sadness, surprise, neutral)
 directly into the JSON for each frame.
 
@@ -16,7 +16,7 @@ import pandas as pd
 
 DEFAULTS = {"thr_hi": 1.5, "thr_lo": 0.3}
 
-# Base clusters (expressive_speech will adapt based on available AUs)
+# Base clusters 
 BASE_CLUSTERS = {
     "authentic_smile":   {"aus": ["AU6", "AU12"],          "rule": "min_and"},
     "eyebrow_engagement":{"aus": ["AU1", "AU2", "AU5"],    "rule": "avg_and_majority"},
@@ -105,22 +105,6 @@ def describe_series(s: pd.Series) -> Dict[str, float]:
         "max": float(s.max(skipna=True)) if s.notna().any() else float("nan"),
     }
 
-def build_clusters_with_availability(df: pd.DataFrame, verbose: bool=False) -> Dict[str, Dict]:
-    clusters = dict(BASE_CLUSTERS)
-    # expressive_speech: use whichever of AU25/26/27 exist
-    available = []
-    for au in ["AU25","AU26","AU27"]:
-        if locate_column(df, au) is not None:
-            available.append(au)
-    if available:
-        clusters["expressive_speech"] = {"aus": available, "rule": "any_max"}
-        if verbose and set(available) != {"AU25","AU26","AU27"}:
-            print(f"[warn] expressive_speech missing some AUs; using {available}")
-    else:
-        if verbose:
-            print("[warn] expressive_speech cannot be computed (AU25/AU26/AU27 all missing)")
-    return clusters
-
 # ---------- Main ----------
 def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
          verbose: bool, print_cols: bool, dump_stats: bool, sample_n: int):
@@ -132,7 +116,7 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
         for c in df.columns:
             print("  -", c)
 
-    clusters = build_clusters_with_availability(df, verbose=verbose)
+    clusters = dict(BASE_CLUSTERS)
 
     # collect AU columns we actually use + map which column variant was chosen
     needed_aus = sorted({au for spec in clusters.values() for au in spec["aus"]})
