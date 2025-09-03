@@ -14,6 +14,36 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
 
+# ---------- Time series handling ----------
+def resolve_time_series(df: pd.DataFrame, fps_fallback: float = 1.0) -> pd.Series:
+    # If a numeric timestamp exists, use it
+    for tcol in ["timestamp", "time", "Timestamp", "Time"]:
+        if tcol in df.columns:
+            raw = pd.to_numeric(df[tcol], errors="coerce")
+            if raw.notna().any():
+                return raw.fillna(method="ffill").fillna(0.0)
+    # No timestamps: each row is one second -> 0,1,2,...
+    return pd.Series(range(len(df)), index=df.index, dtype=float) / float(fps_fallback)
+
+def make_overlapping_segments(times: pd.Series, win_sec: float = 5.0, hop_sec: float = 2.0):
+    """Yield (start, end, mask) for overlapping windows covering [0, max_time]."""
+    end_time = float(times.max()) if len(times) else 0.0
+    t0 = 0.0
+    while t0 <= end_time:
+        t1 = t0 + win_sec
+        mask = (times >= t0) & (times < t1)
+        yield (t0, t1, mask)
+        t0 += hop_sec
+
+def format_timestamp_range(start_sec: float, end_sec: float) -> str:
+    """Format seconds into M:SS - M:SS style."""
+    s0 = int(round(start_sec))
+    s1 = int(round(end_sec))
+    m0, sec0 = divmod(s0, 60)
+    m1, sec1 = divmod(s1, 60)
+    return f"{m0}:{sec0:02d} - {m1}:{sec1:02d}"
+
+
 DEFAULTS = {"thr_hi": 1.5, "thr_lo": 0.3}
 
 # Base clusters 
@@ -217,6 +247,33 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
 
         frames.append(rec)
 
+    # --- Build overlapping 5s segments with 2s hop ---
+    times = resolve_time_series(df, fps_fallback=1.0)
+    segments_out = []
+    for seg_start, seg_end, m in make_overlapping_segments(times, win_sec=5.0, hop_sec=2.0):
+        n = int(m.sum())
+        if n == 0:
+            cluster_rates = {name: 0.0 for name in flags_df.columns}
+            emo_means = {col: None for col in available_emotions}
+        else:
+            # clusters: fraction of frames active (normalized 0–1)
+            cluster_rates = {name: float(flags_df.loc[m, name].mean()) for name in flags_df.columns}
+            # emotions: average across frames
+            if available_emotions:
+                emo_means = (df.loc[m, available_emotions]
+                               .apply(pd.to_numeric, errors="coerce")
+                               .mean(skipna=True)
+                               .to_dict())
+                emo_means = {k: (None if pd.isna(v) else float(v)) for k, v in emo_means.items()}
+            else:
+                emo_means = {}
+
+        segments_out.append({
+            "timestamp": format_timestamp_range(seg_start, seg_end),
+            "clusters": cluster_rates,
+            "emotions_avg": emo_means
+        })
+
     out = {
         "metadata": {
             "input_csv": str(Path(in_csv).name),
@@ -229,6 +286,7 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
             "emotions_included": available_emotions,
         },
         "frames": frames,
+        "segments": segments_out,
     }
 
     Path(out_json).parent.mkdir(parents=True, exist_ok=True)
