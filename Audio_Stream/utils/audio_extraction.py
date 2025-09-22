@@ -1,7 +1,8 @@
 import subprocess
 
-input_file = r"C:\Users\Jeslyn\OneDrive\Desktop\capstone\Capstone-2T6\IMG_4027.MOV"
-output_file = "output_audio.mp3"
+input_file = r"/Users/erencimentepe/Desktop/VSCode Projects/Capstone-2T6/Audio_Stream/utils/input_video.MOV"
+# Can change this to mp3 or wav they both work
+output_file = "output_audio.wav"
 
 # Extract the audio as mp3 using ffmpeg
 subprocess.run([
