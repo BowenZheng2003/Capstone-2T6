@@ -54,7 +54,7 @@ all_dfs = []
 # RUNNING MODELS
 try:
     # REPLACE WITH THE CORRECT INTERVIEW AUDIO FILE PATH
-    audio = AudioSegment.from_wav("/Users/erencimentepe/Desktop/VSCode Projects/Capstone-2T6/Audio_Stream/utils/OSR_us_000_0030_8k.wav")
+    audio = AudioSegment.from_file("/Users/erencimentepe/Desktop/VSCode Projects/Capstone-2T6/Audio_Stream/utils/output_audio.mp3")
     for i, feature_cols in enumerate(all_feature_cols):
         # Segment the file based on the current feature columns corresponding to the appropriate model
         segments = processing.segment_audio(audio, feature_cols=feature_cols)

@@ -16,7 +16,7 @@ def segment_audio(audio, feature_cols, segment_duration_ms=3000, step_size=1500)
     Segment audio into smaller chunks and extract features.
     
     Parameters:
-        audio_path (str, mandatory): Path to the audio file.
+        audio (AudioSegment, mandatory): AudioSegment object to process.
         segment_duration_ms (int, optional): Duration of each segment in milliseconds.
         step_size (int, optional): Overlap amount in milliseconds.
         feature_cols (list[str], mandatory): List of feature columns to extract.
@@ -27,7 +27,7 @@ def segment_audio(audio, feature_cols, segment_duration_ms=3000, step_size=1500)
 
     segments = []
     file_id = "segmented_audio"
-    audio = AudioSegment.from_wav(audio)
+    # audio is already an AudioSegment object, no need to load it again
 
     # Segment audio
     for i in range(0, len(audio) - segment_duration_ms + 1, step_size):
@@ -89,7 +89,7 @@ def merge_on_timestamp(dfs, target_columns, join_col="timestamp"):
 
     return merged_df
 
-def create_json_output(merged_df, target_columns, join_col="timestamp"):
+def create_json_output(merged_df, target_columns, join_col="timestamp", filename="output.json"):
     """
     Create a JSON output from a merged DataFrame, always including the join column.
     
@@ -103,4 +103,11 @@ def create_json_output(merged_df, target_columns, join_col="timestamp"):
     """
     cols_to_keep = [join_col] + target_columns
     records = merged_df[cols_to_keep].to_dict(orient="records")
-    return json.dumps(records, indent=2)
+    json_str = json.dumps(records, indent=2)
+
+    # Save JSON string to a file in the current directory
+    file_path = os.path.join(os.getcwd(), filename)
+    with open(file_path, "w") as f:
+        f.write(json_str)
+
+    return json_str
