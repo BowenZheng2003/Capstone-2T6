@@ -9,15 +9,17 @@ Now with:
 - Tunable thresholds for emotion/cluster sparsification.
 - FPS support when only a 'frame' column is present.
 - Tunable window size and hop.
+- NEW: --include_frames to optionally include per-frame details in JSON (default: off).
 
 Usage:
   python au_flags.py --in_csv path/to/aus.csv --out_json path/to/flags.json
     [--thr_hi 1.5] [--thr_lo 0.3] [--verbose] [--print_cols] [--dump_stats]
     [--sample_n 5] [--fps 1.0] [--win_sec 5.0] [--hop_sec 2.0]
     [--emo_min 0.35] [--emo_margin 0.15] [--cluster_min_rate 0.4]
+    [--include_frames]
 """
 
-import argparse, json, math
+import argparse, json, math, sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
@@ -36,27 +38,21 @@ DEFAULTS = {
 # ----- Time series handling -----
 def resolve_time_series(df: pd.DataFrame, fps_fallback: float = 1.0) -> pd.Series:
     """Prefer numeric timestamp/time; else convert frame index using fps; else assume 1 Hz."""
-    # If a numeric timestamp exists, use it
     for tcol in ["timestamp", "time", "Timestamp", "Time"]:
         if tcol in df.columns:
             raw = pd.to_numeric(df[tcol], errors="coerce")
             if raw.notna().any():
                 return raw.fillna(method="ffill").fillna(0.0)
-
-    # If frame exists, convert frames to seconds using fps_fallback
     for fcol in ["frame", "Frame"]:
         if fcol in df.columns:
             frames = pd.to_numeric(df[fcol], errors="coerce").fillna(method="ffill").fillna(0.0)
             return frames.astype(float) / float(max(fps_fallback, 1e-9))
-
-    # No timestamps or frame: treat each row as 1 second
     return pd.Series(range(len(df)), index=df.index, dtype=float) / float(max(fps_fallback, 1e-9))
 
 def make_overlapping_segments(times: pd.Series, win_sec: float = 5.0, hop_sec: float = 2.0):
     """Yield (start, end, mask) for overlapping windows covering [0, max_time]."""
     end_time = float(times.max()) if len(times) else 0.0
     t0 = 0.0
-    # Ensure at least one window for very short clips
     if end_time == 0.0:
         mask = (times >= 0.0) & (times < win_sec)
         yield (0.0, win_sec, mask)
@@ -108,11 +104,9 @@ def locate_column(df: pd.DataFrame, base_au: str) -> Optional[Tuple[str,str]]:
     return None
 
 def to_intensity(df: pd.DataFrame, base_au: str) -> Optional[pd.Series]:
-    # prefer intensity
     for col, kind in canonical_au_variants(base_au):
         if col in df.columns and kind == "intensity":
             return pd.to_numeric(df[col], errors="coerce")
-    # fallback to presence mapped to [0,1]
     for col, kind in canonical_au_variants(base_au):
         if col in df.columns and kind == "presence":
             return pd.to_numeric(df[col], errors="coerce").fillna(0.0).clip(lower=0.0, upper=1.0)
@@ -171,7 +165,6 @@ def sparsify_emotions(emo_means: Dict[str, Optional[float]], p_min: float, margi
     max_p = max(vals.values())
     kept = {k: round(v, 2) for k, v in vals.items() if (v >= p_min and (max_p - v) <= margin)}
     if not kept and max_p >= 0.2:
-        # keep only the top-1 (rounded)
         top1_k = max(vals, key=lambda x: vals[x])
         kept = {top1_k: round(vals[top1_k], 2)}
     return kept
@@ -184,18 +177,18 @@ def sparsify_clusters(cluster_rates: Dict[str, float], min_rate: float) -> Dict[
 def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
          verbose: bool, print_cols: bool, dump_stats: bool, sample_n: int,
          fps: float, win_sec: float, hop_sec: float,
-         emo_min: float, emo_margin: float, cluster_min_rate: float):
-    if verbose: print("[info] Loading CSV:", in_csv)
+         emo_min: float, emo_margin: float, cluster_min_rate: float,
+         include_frames: bool):
+    if verbose: print("[info] Loading CSV:", in_csv, file=sys.stderr)
     df = pd.read_csv(in_csv)
 
     if print_cols:
-        print("[info] CSV columns:")
+        print("[info] CSV columns:", file=sys.stderr)
         for c in df.columns:
-            print("  -", c)
+            print("  -", c, file=sys.stderr)
 
     clusters = dict(BASE_CLUSTERS)
 
-    # collect AU columns we actually use + map which column variant was chosen
     needed_aus = sorted({au for spec in clusters.values() for au in spec["aus"]})
     au_series: Dict[str, pd.Series] = {}
     au_resolved_cols: Dict[str, str] = {}
@@ -204,7 +197,6 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
     for au in needed_aus:
         loc = locate_column(df, au)
         if loc is None:
-            # fallback to zeros if missing
             au_series[au] = pd.Series([0.0]*len(df), index=df.index, dtype=float)
             au_resolved_cols[au] = "<missing>"
             au_kinds[au] = "none"
@@ -218,29 +210,29 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
             au_kinds[au] = kind
 
     if verbose:
-        print("[info] AU column resolution (base -> used column [type]):")
+        print("[info] AU column resolution (base -> used column [type]):", file=sys.stderr)
         for au in needed_aus:
-            print(f"{au:>4} -> {au_resolved_cols[au]} [{au_kinds[au]}]")
+            print(f"{au:>4} -> {au_resolved_cols[au]} [{au_kinds[au]}]", file=sys.stderr)
 
     aus_df = pd.DataFrame(au_series)
 
     thr = auto_threshold(aus_df, thr_hi=thr_hi, thr_lo=thr_lo)
     if verbose:
-        print(f"[info] Threshold auto-detected: {thr:.3f} (hi={thr_hi}, lo={thr_lo})")
+        print(f"[info] Threshold auto-detected: {thr:.3f} (hi={thr_hi}, lo={thr_lo})", file=sys.stderr)
         if dump_stats:
-            print("[info] AU intensity summary (after presence→intensity mapping):")
+            print("[info] AU intensity summary (after presence→intensity mapping):", file=sys.stderr)
             for au in needed_aus:
                 stats = describe_series(aus_df[au])
                 print(f"{au:>4} count={stats['count']:>6} min={stats['min']:.3f} "
-                      f"p50={stats['p50']:.3f} p95={stats['p95']:.3f} max={stats['max']:.3f}")
+                      f"p50={stats['p50']:.3f} p95={stats['p95']:.3f} max={stats['max']:.3f}",
+                      file=sys.stderr)
 
-    # Optional sample rows for sanity check
     if sample_n > 0:
         n = min(sample_n, len(aus_df))
-        print(f"[info] Sample of first {n} rows for needed AUs:")
-        print(aus_df.head(n).to_string(index=False))
+        print(f"[info] Sample of first {n} rows for needed AUs:", file=sys.stderr)
+        print(aus_df.head(n).to_string(index=False), file=sys.stderr)
 
-    # Compute flags (per frame)
+    # Per-frame flags (always computed internally for segments)
     flags_df = pd.DataFrame(index=df.index)
     for cname, spec in clusters.items():
         aus = spec["aus"]
@@ -254,42 +246,42 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
         flags_df[cname] = flags
         if verbose:
             on_count = int(flags_df[cname].sum())
-            print(f"[info] Cluster '{cname}': active frames = {on_count}/{len(flags_df)}")
+            print(f"[info] Cluster '{cname}': active frames = {on_count}/{len(flags_df)}", file=sys.stderr)
 
-    # Frame key (optional)
-    frame_key = None
-    for candidate in ["frame","timestamp","time","Frame","Timestamp"]:
-        if candidate in df.columns:
-            frame_key = candidate; break
+    # Optional per-frame JSON section
+    frames = None
+    if include_frames:
+        frame_key = None
+        for candidate in ["frame","timestamp","time","Frame","Timestamp"]:
+            if candidate in df.columns:
+                frame_key = candidate; break
+        available_emotions = [col for col in EMOTION_COLS if col in df.columns]
+        if verbose and available_emotions:
+            print("[info] Emotions found:", available_emotions, file=sys.stderr)
 
-    # Emotions: only include those present
-    available_emotions = [col for col in EMOTION_COLS if col in df.columns]
-    if verbose and available_emotions:
-        print("[info] Emotions found:", available_emotions)
-
-    # Build per-frame JSON records (AUs + emotions)
-    frames = []
-    for i in range(len(flags_df)):
-        rec = {k: bool(flags_df.iloc[i][k]) for k in flags_df.columns}
-        rec["index"] = int(i)
-        if frame_key is not None:
-            val = df.loc[i, frame_key]
-            try: rec[frame_key] = int(val)
-            except Exception:
-                try: rec[frame_key] = float(val)
-                except Exception: rec[frame_key] = str(val)
-        if available_emotions:
-            emo = {}
-            for col in available_emotions:
-                v = df.loc[i, col]
-                try:
-                    emo[col] = float(v)
+        frames = []
+        for i in range(len(flags_df)):
+            rec = {k: bool(flags_df.iloc[i][k]) for k in flags_df.columns}
+            rec["index"] = int(i)
+            if frame_key is not None:
+                val = df.loc[i, frame_key]
+                try: rec[frame_key] = int(val)
                 except Exception:
-                    emo[col] = v if pd.notna(v) else None
-            rec["emotions"] = emo
-        frames.append(rec)
+                    try: rec[frame_key] = float(val)
+                    except Exception: rec[frame_key] = str(val)
+            if available_emotions:
+                emo = {}
+                for col in available_emotions:
+                    v = df.loc[i, col]
+                    try:
+                        emo[col] = float(v)
+                    except Exception:
+                        emo[col] = v if pd.notna(v) else None
+                rec["emotions"] = emo
+            frames.append(rec)
 
-    # --- Build overlapping segments ---
+    # Build segments (slim)
+    available_emotions = [col for col in EMOTION_COLS if col in df.columns]
     times = resolve_time_series(df, fps_fallback=fps)
     segments_out = []
     for seg_start, seg_end, m in make_overlapping_segments(times, win_sec=win_sec, hop_sec=hop_sec):
@@ -308,7 +300,6 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
             else:
                 emo_means = {}
 
-        # Slim/sparse segment outputs for the LLM:
         emotions_sparse = sparsify_emotions(emo_means, p_min=emo_min, margin=emo_margin) if available_emotions else {}
         clusters_sparse = sparsify_clusters(cluster_rates, min_rate=cluster_min_rate)
 
@@ -319,16 +310,15 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
             seg_obj["clusters"] = clusters_sparse
         segments_out.append(seg_obj)
 
+    # Build final JSON
     out = {
         "metadata": {
             "input_csv": str(Path(in_csv).name),
             "threshold_used": thr,
             "threshold_hi_param": thr_hi,
             "threshold_lo_param": thr_lo,
-            "clusters": BASE_CLUSTERS,  # original spec for reference
+            "clusters": BASE_CLUSTERS,
             "au_scale_hint": "auto-detected via 95th percentile",
-            "au_column_resolution": {au: {"column": au_resolved_cols[au], "type": au_kinds[au]} for au in needed_aus},
-            "emotions_included": available_emotions,
             "fps_used": fps,
             "window_sec": win_sec,
             "hop_sec": hop_sec,
@@ -336,40 +326,43 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
             "emo_margin": emo_margin,
             "cluster_min_rate": cluster_min_rate,
         },
-        "frames": frames,
-        "segments": segments_out,  # slimmed/sparse segments for LLM
+        "segments": segments_out,  # slimmed segments for LLM
     }
+    # Only include these heavier fields when frames are requested
+    if include_frames:
+        out["metadata"]["au_column_resolution"] = {au: {"column": au_resolved_cols[au], "type": au_kinds[au]} for au in needed_aus}
+        out["metadata"]["emotions_included"] = available_emotions
+        out["frames"] = frames
 
     Path(out_json).parent.mkdir(parents=True, exist_ok=True)
     with open(out_json, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False, indent=2)
 
-    print(f"[done] Wrote {out_json} with {len(frames)} frame records and {len(segments_out)} segments.")
+    print(f"[done] Wrote {out_json} with {len(segments_out)} segments."
+          + ("" if not include_frames else f" (frames: {len(frames)})"),
+          file=sys.stderr)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--in_csv", required=True)
     ap.add_argument("--out_json", required=True)
-
     ap.add_argument("--thr_hi", type=float, default=DEFAULTS["thr_hi"])
     ap.add_argument("--thr_lo", type=float, default=DEFAULTS["thr_lo"])
-
     ap.add_argument("--verbose", action="store_true", help="Print detailed diagnostics")
     ap.add_argument("--print_cols", action="store_true", help="Print every CSV column name")
     ap.add_argument("--dump_stats", action="store_true", help="Print per-AU stats (min/median/p95)")
     ap.add_argument("--sample_n", type=int, default=5, help="Print first N rows of used AU columns")
-
-    # New controls
     ap.add_argument("--fps", type=float, default=DEFAULTS["fps"], help="Frames per second when only 'frame' is present")
     ap.add_argument("--win_sec", type=float, default=DEFAULTS["win_sec"], help="Segment window size in seconds")
     ap.add_argument("--hop_sec", type=float, default=DEFAULTS["hop_sec"], help="Segment hop size in seconds")
-
     ap.add_argument("--emo_min", type=float, default=DEFAULTS["emo_min"], help="Min emotion prob to keep in a segment")
     ap.add_argument("--emo_margin", type=float, default=DEFAULTS["emo_margin"], help="Keep emotions within this of max")
     ap.add_argument("--cluster_min_rate", type=float, default=DEFAULTS["cluster_min_rate"], help="Min cluster rate to keep")
+    ap.add_argument("--include_frames", action="store_true", help="Include per-frame section in JSON (default: off)")
 
     args = ap.parse_args()
     main(args.in_csv, args.out_json, args.thr_hi, args.thr_lo,
          args.verbose, args.print_cols, args.dump_stats, args.sample_n,
          args.fps, args.win_sec, args.hop_sec,
-         args.emo_min, args.emo_margin, args.cluster_min_rate)
+         args.emo_min, args.emo_margin, args.cluster_min_rate,
+         args.include_frames)
