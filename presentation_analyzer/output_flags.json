@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "input_csv": "pyfeat_results.csv",
+    "threshold_used": 0.3,
+    "threshold_hi_param": 1.5,
+    "threshold_lo_param": 0.3,
+    "clusters": {
+      "authentic_smile": {
+        "aus": [
+          "AU6",
+          "AU12"
+        ],
+        "rule": "min_and"
+      },
+      "eyebrow_engagement": {
+        "aus": [
+          "AU1",
+          "AU2",
+          "AU5"
+        ],
+        "rule": "avg_and_majority"
+      },
+      "focused_thinking": {
+        "aus": [
+          "AU4",
+          "AU7"
+        ],
+        "rule": "min_and"
+      },
+      "tension": {
+        "aus": [
+          "AU14",
+          "AU15",
+          "AU17"
+        ],
+        "rule": "avg_and_majority"
+      }
+    },
+    "au_scale_hint": "auto-detected via 95th percentile",
+    "fps_used": 1.0,
+    "window_sec": 5.0,
+    "hop_sec": 2.0,
+    "emo_min": 0.35,
+    "emo_margin": 0.15,
+    "cluster_min_rate": 0.4,
+    "num_frames": 16,
+    "num_segments": 8
+  },
+  "segments": [
+    {
+      "timestamp": "0:00-0:05",
+      "emotions": {
+        "surprise": 0.84
+      },
+      "clusters": {
+        "eyebrow_engagement": 1.0,
+        "tension": 0.8
+      }
+    },
+    {
+      "timestamp": "0:02-0:07",
+      "emotions": {
+        "surprise": 0.68
+      },
+      "clusters": {
+        "eyebrow_engagement": 1.0,
+        "tension": 0.6
+      }
+    },
+    {
+      "timestamp": "0:04-0:09",
+      "emotions": {
+        "surprise": 0.48
+      },
+      "clusters": {
+        "eyebrow_engagement": 0.8,
+        "tension": 0.4
+      }
+    },
+    {
+      "timestamp": "0:06-0:11",
+      "emotions": {
+        "surprise": 0.42
+      },
+      "clusters": {
+        "eyebrow_engagement": 0.8,
+        "tension": 0.4
+      }
+    },
+    {
+      "timestamp": "0:08-0:13",
+      "emotions": {
+        "surprise": 0.69
+      },
+      "clusters": {
+        "eyebrow_engagement": 1.0,
+        "tension": 0.8
+      }
+    },
+    {
+      "timestamp": "0:10-0:15",
+      "emotions": {
+        "surprise": 0.83
+      },
+      "clusters": {
+        "eyebrow_engagement": 1.0,
+        "tension": 0.8
+      }
+    },
+    {
+      "timestamp": "0:12-0:17",
+      "emotions": {
+        "surprise": 0.84
+      },
+      "clusters": {
+        "eyebrow_engagement": 1.0,
+        "tension": 0.75
+      }
+    },
+    {
+      "timestamp": "0:14-0:19",
+      "emotions": {
+        "surprise": 0.84
+      },
+      "clusters": {
+        "eyebrow_engagement": 1.0,
+        "tension": 0.5
+      }
+    }
+  ]
+}
