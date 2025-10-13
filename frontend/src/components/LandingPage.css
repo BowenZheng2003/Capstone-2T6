@@ -8,13 +8,17 @@
   padding: 1rem;
   box-sizing: border-box;
   overflow-x: hidden; /* Prevent horizontal scroll */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 header {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin: 2rem 0;
+  margin: 0;
   position: relative;
   z-index: 10;
 }
@@ -46,27 +50,56 @@ button {
   cursor: pointer;
 }
 
-.features {
-  padding: 4rem 2rem;
-  text-align: center;
+/* Action Buttons Container */
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
 }
 
-.features h2 {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1rem;
-  color: #6F6FDA;
+.action-btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 140px;
 }
 
-.features p {
-  font-size: 1.125rem;
-  color: #6F6FDA;
+.upload-btn {
+  background-color: #8D8DE9;
+  color: white;
 }
+
+.upload-btn:hover {
+  background-color: #7A7AE0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(141, 141, 233, 0.3);
+}
+
+.record-btn {
+  background-color: #6F6FDA;
+  color: white;
+}
+
+.record-btn:hover {
+  background-color: #5A5AC7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(111, 111, 218, 0.3);
+}
+
 
 /* API Toggle Section */
 .api-toggle-section {
-  margin: 2rem 0;
+  margin: 1rem 0;
   text-align: center;
+  position: relative;
+  z-index: 10;
 }
 
 .api-toggle-btn {
@@ -240,6 +273,17 @@ button {
   .api-btn {
     padding: 0.3rem 0.6rem;
     font-size: 0.7rem;
+  }
+  
+  .action-buttons {
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  
+  .action-btn {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    min-width: 120px;
   }
 }
 

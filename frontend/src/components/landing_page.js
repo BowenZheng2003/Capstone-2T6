@@ -19,9 +19,14 @@ function LandingPage() {
 
     const API_BASE = 'http://localhost:8000';
 
-  const handleGetStarted = () => {
+  const handleUploadVideo = () => {
     // Trigger the hidden file input
     fileInputRef.current.click();
+  };
+
+  const handleRecordVideo = () => {
+    // Placeholder for record video functionality
+    alert('Record Video functionality will be implemented soon!');
   };
 
   const handleFileChange = async (event) => {
@@ -109,21 +114,20 @@ function LandingPage() {
         <h1>SODA POP</h1>
         <p>Cool me down, you're so hot</p>
         <p>Pour me up, I won't stop</p>
-        <p>You're my soda pop</p>
-        <p>My little soda pop</p>
-        <button onClick={handleGetStarted}>Get Started</button>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-        />
+          <p>You're my soda pop</p>
+          <p>My little soda pop</p>
+          <div className="action-buttons">
+            <button onClick={handleUploadVideo} className="action-btn upload-btn">Upload Video</button>
+            <button onClick={handleRecordVideo} className="action-btn record-btn">Record Video</button>
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
       </header>
 
-      <section className="features">
-        <h2>What We Do</h2>
-        <p>Some description from your Figma copy</p>
-      </section>
 
       {/* API Testing Toggle Button */}
       <div className="api-toggle-section">
