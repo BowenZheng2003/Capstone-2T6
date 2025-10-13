@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
 import './LandingPage.css'; // optional if using CSS
 import top_left from '../assets/Group 1.svg';
@@ -8,6 +8,16 @@ import right from '../assets/Group 2.svg';
 
 function LandingPage() {
     const fileInputRef = useRef(null);
+    
+    // API state hooks
+    const [rootMessage, setRootMessage] = useState('');
+    const [pingResponse, setPingResponse] = useState('');
+    const [transcriptResponse, settranscriptResponse] = useState('');
+    const [echoText, setEchoText] = useState('');
+    const [echoResponse, setEchoResponse] = useState('');
+    const [showApiTesting, setShowApiTesting] = useState(false);
+
+    const API_BASE = 'http://localhost:8000';
 
   const handleGetStarted = () => {
     // Trigger the hidden file input
@@ -41,6 +51,54 @@ function LandingPage() {
       alert('File upload failed.');
     }
   };
+
+  // API functions
+  const fetchRoot = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/`);
+      const data = await res.json();
+      setRootMessage(data.message);
+    } catch (err) {
+      console.error(err);
+      setRootMessage('Error fetching /');
+    }
+  };
+
+  const fetchPing = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/ping`);
+      const text = await res.text();
+      setPingResponse(text);
+    } catch (err) {
+      console.error(err);
+      setPingResponse('Error fetching /ping');
+    }
+  };
+
+  const fetchTranscribe = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/transcribe_macbeth`);
+      const text = await res.text();
+      settranscriptResponse(text);
+    } catch (err) {
+      console.error(err);
+      settranscriptResponse('Error fetching /transcribe_macbeth');
+    }
+  };
+
+  const fetchEcho = async () => {
+    if (!echoText.trim()) return;
+    try {
+      const res = await fetch(
+        `${API_BASE}/echo/${encodeURIComponent(echoText)}`
+      );
+      const data = await res.json();
+      setEchoResponse(data.echo);
+    } catch (err) {
+      console.error(err);
+      setEchoResponse('Error fetching /echo');
+    }
+  };
   
   return (
     <div className="landing-container" style={{ position: 'relative' }}>
@@ -67,7 +125,62 @@ function LandingPage() {
         <p>Some description from your Figma copy</p>
       </section>
 
-      {/* Add more sections based on your Figma design */}
+      {/* API Testing Toggle Button */}
+      <div className="api-toggle-section">
+        <button 
+          onClick={() => setShowApiTesting(!showApiTesting)}
+          className="api-toggle-btn"
+        >
+          {showApiTesting ? '🔽 Hide API Testing' : '🔧 Show API Testing'}
+        </button>
+      </div>
+
+      {/* Collapsible API Testing Section */}
+      {showApiTesting && (
+        <section className="api-testing">
+          <h3>API Testing</h3>
+          <div className="api-buttons">
+            <button onClick={fetchRoot} className="api-btn">Test Root</button>
+            <button onClick={fetchPing} className="api-btn">Test Ping</button>
+            <button onClick={fetchTranscribe} className="api-btn">Test Transcribe</button>
+          </div>
+          
+          <div className="echo-section">
+            <input
+              type="text"
+              value={echoText}
+              onChange={(e) => setEchoText(e.target.value)}
+              placeholder="Type something to echo"
+              className="echo-input"
+            />
+            <button onClick={fetchEcho} className="api-btn">Test Echo</button>
+          </div>
+
+          {/* API Responses */}
+          <div className="api-responses">
+            {rootMessage && (
+              <div className="response">
+                <strong>Root Response:</strong> {rootMessage}
+              </div>
+            )}
+            {pingResponse && (
+              <div className="response">
+                <strong>Ping Response:</strong> {pingResponse}
+              </div>
+            )}
+            {transcriptResponse && (
+              <div className="response">
+                <strong>Transcribe Response:</strong> {transcriptResponse}
+              </div>
+            )}
+            {echoResponse && (
+              <div className="response">
+                <strong>Echo Response:</strong> {echoResponse}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
