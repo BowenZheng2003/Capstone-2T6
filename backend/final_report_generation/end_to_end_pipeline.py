@@ -36,5 +36,3 @@ def generate_full_report(input_video: str):
     #print("HERE TOO")
     print(merged_json)
     call_deepseek(merged_json=merged_json, context="coke rant") #for now this prints out deepseek's evaluation
-
-generate_full_report(r"/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/IMG_4027 2.MOV")
