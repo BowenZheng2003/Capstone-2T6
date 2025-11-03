@@ -37,4 +37,4 @@ def generate_full_report(input_video: str):
     print(merged_json)
     call_deepseek(merged_json=merged_json, context="coke rant") #for now this prints out deepseek's evaluation
 
-generate_full_report(r"C:\Users\Jeslyn\OneDrive\Desktop\capstone\Capstone-2T6\IMG_4027.MOV")
+generate_full_report(r"/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/IMG_4027 2.MOV")

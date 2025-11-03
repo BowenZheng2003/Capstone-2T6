@@ -11,10 +11,6 @@ import argparse, json, math
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import pandas as pd
-from pathlib import Path
-import subprocess
-import tempfile
-import os
 
 DEFAULTS = {
     "thr_hi": 1.5,

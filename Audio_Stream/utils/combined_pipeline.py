@@ -27,6 +27,16 @@ def get_audio_json(input_path: str):
             "mfcc4_sma3_amean",
             "spectralFlux_sma3_amean",
             "slopeV0-500_sma3nz_amean"
+        ],
+        [
+            "F0semitoneFrom27.5Hz_sma3nz_amean",
+            "HNRdBACF_sma3nz_amean",
+            "jitterLocal_sma3nz_amean",
+            "shimmerLocaldB_sma3nz_amean",
+            "loudness_sma3_amean",
+            "mfcc1_sma3_amean",
+            "mfcc2_sma3_amean",
+            "mfcc3_sma3_amean"
         ]
     ]
 
@@ -45,10 +55,11 @@ def get_audio_json(input_path: str):
             3: "Energetic and Assertive",
             4: "Enthusiastic",
             5: "Expressive and Engaged"
-        }
+        },
+        ["Focused", "Authentic", "NotAwkward", "EngagingTone"]
     ]
 
-    models = ["confidence", "emotion"]
+    models = ["confidence", "emotion", "delivery"]
 
     all_dfs = []
 
@@ -73,11 +84,11 @@ def get_audio_json(input_path: str):
             #print(df)
     except Exception as e:
         raise RuntimeError(f"Error: {e}.\n Was not able to extract features or run the models using test interview.") from e
-
+    print("ALL OUR DATAFRAMES LOL: ", all_dfs)
     # COMBINING OUTPUTS
     try: 
         # If target column labels match the model names exactly we can get rid of this list and use the models list instead
-        target_columns = ["emotion", "confidence"]
+        target_columns = ["emotion", "confidence", "delivery"]
         results = processing.merge_on_timestamp(all_dfs, target_columns)
         output_path = processing.create_json_output(results, target_columns)
         print(output_path)
@@ -85,3 +96,5 @@ def get_audio_json(input_path: str):
         raise RuntimeError(f"Error: {e}.\n Was not able to merge and convert outputs to a list of dicts.") from e
     
     return output_path
+
+get_audio_json(input_path=r"/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/IMG_4027 2.MOV")
