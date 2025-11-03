@@ -35,6 +35,6 @@ def generate_full_report(input_video: str):
     merged_json = concatenate_streams(audio=audio_json, video="video_segments.json", text=text_json)
     #print("HERE TOO")
     print(merged_json)
-    call_deepseek(merged_json=merged_json, context="coke rant") #for now this prints out deepseek's evaluation
+    report = call_deepseek(merged_json=merged_json, context="coke rant") #for now this prints out deepseek's evaluation
 
-    return merged_json
+    return report

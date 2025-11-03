@@ -37,4 +37,6 @@ def call_deepseek(context: str, merged_json: str):
 
     print(completion.choices[0].message)
 
+    return completion.choices[0].message.content
+
 #call_deepseek(context="coke rant", merged_json="merged.json")

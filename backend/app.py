@@ -73,8 +73,8 @@ async def process_video(file: UploadFile = File(...), background_tasks: Backgrou
             shutil.copyfileobj(file.file, buffer)
 
         # Option 1 — Run synchronously and return the result
-        report_path = generate_full_report(temp_path)
-        report = open(report_path, "r").read()
+        report = generate_full_report(temp_path)
+        #report = open(report_path, "r").read()
 
         # Option 2 — If pipeline is heavy, use background task:
         # background_tasks.add_task(end_to_end_pipeline, temp_path)
