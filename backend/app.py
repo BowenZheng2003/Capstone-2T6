@@ -62,24 +62,25 @@ async def process_video(file: UploadFile = File(...), background_tasks: Backgrou
     Upload a video, save it temporarily, and run the end_to_end_pipeline.
     """
 
-    return {"message": "Processing complete.", "report": "MOCK RESPONSE"}  # Remove this line when enabling the function below
-    # try:
-    #     # Save uploaded file to disk
-    #     file_ext = os.path.splitext(file.filename)[1]
-    #     unique_name = f"{uuid.uuid4().hex}{file_ext}"
-    #     temp_path = os.path.join(UPLOAD_DIR, unique_name)
+    #return {"message": "Processing complete.", "report": "MOCK RESPONSE"}  # Remove this line when enabling the function below
+    try:
+        # Save uploaded file to disk
+        file_ext = os.path.splitext(file.filename)[1]
+        unique_name = f"{uuid.uuid4().hex}{file_ext}"
+        temp_path = os.path.join(UPLOAD_DIR, unique_name)
 
-    #     with open(temp_path, "wb") as buffer:
-    #         shutil.copyfileobj(file.file, buffer)
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    #     # Option 1 — Run synchronously and return the result
-    #     report = "MOCK REPORT HERE" #generate_full_report(temp_path)
+        # Option 1 — Run synchronously and return the result
+        report_path = generate_full_report(temp_path)
+        report = open(report_path, "r").read()
 
-    #     # Option 2 — If pipeline is heavy, use background task:
-    #     # background_tasks.add_task(end_to_end_pipeline, temp_path)
-    #     # return {"message": "Video upload received. Processing in background."}
+        # Option 2 — If pipeline is heavy, use background task:
+        # background_tasks.add_task(end_to_end_pipeline, temp_path)
+        # return {"message": "Video upload received. Processing in background."}
 
-    #     return {"message": "Processing complete.", "report": report}
+        return {"message": "Processing complete.", "report": report}
 
-    # except Exception as e:
-    #     return JSONResponse(status_code=500, content={"error": str(e)})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})

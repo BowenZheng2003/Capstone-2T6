@@ -36,3 +36,5 @@ def generate_full_report(input_video: str):
     #print("HERE TOO")
     print(merged_json)
     call_deepseek(merged_json=merged_json, context="coke rant") #for now this prints out deepseek's evaluation
+
+    return merged_json
