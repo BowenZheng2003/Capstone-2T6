@@ -22,3 +22,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+venv/
+__pycache__/
+node_modules/
+frames/
+uploads/
+*.mp4
+*.wav
+tmp*_features.json
+output.json
+output_audio.wav
+recorded.wav
+*.MOV

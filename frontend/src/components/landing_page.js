@@ -1,181 +1,118 @@
+// src/components/landing_page.js
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Recorder from './Recorder';
 
 import './LandingPage.css';
 import top_left from '../assets/Group 1.svg';
 import bottom_left from '../assets/Group 3.svg';
 import right from '../assets/Group 2.svg';
 
+const API_BASE = 'http://localhost:8000';
+const pick = (obj, keys) => keys.reduce((v, k) => (v ?? obj?.[k]), undefined);
+
 function LandingPage() {
+  const navigate = useNavigate();
   const fileInputRef = useRef(null);
+  const [showRecorder, setShowRecorder] = useState(false);
 
-  // API state hooks
-  const [rootMessage, setRootMessage] = useState('');
-  const [pingResponse, setPingResponse] = useState('');
-  const [transcriptResponse, settranscriptResponse] = useState('');
-  const [echoText, setEchoText] = useState('');
-  const [echoResponse, setEchoResponse] = useState('');
-  const [showApiTesting, setShowApiTesting] = useState(false);
-  const [uploadResponse, setUploadResponse] = useState(null);
+  const handleUploadVideo = () => fileInputRef.current?.click();
 
-  const API_BASE = 'http://localhost:8000';
+  // Open the recording modal
+  const handleRecordVideo = () => setShowRecorder(true);
 
-  const handleUploadVideo = () => {
-    fileInputRef.current.click();
+  // When the Recorder finishes uploading, route like the file-upload path
+  const handleRecorderUploaded = (result) => {
+    if (result?.job_id || result?.jobId) {
+      const jobId = result.job_id || result.jobId;
+      navigate(`/analyzing?jobId=${encodeURIComponent(jobId)}`);
+    } else {
+      const reportText =
+        result.report_text || result.report || result.output || result.message || '';
+      navigate('/results', { state: { reportText, meta: result } });
+    }
+    setShowRecorder(false);
   };
 
-  const handleRecordVideo = () => {
-    alert('Record Video functionality will be implemented soon!');
-  };
-
-  // ✅ FIXED handleFileChange — no nested function
-  const handleFileChange = async (event) => {
-    const file = event.target.files[0];
+  // File picker -> upload -> navigate
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file); // must match FastAPI param name
+    // 1) Clear previous run markers
+    localStorage.removeItem('latestReportText');
+    localStorage.removeItem('latestReportMeta');
+    localStorage.removeItem('latestReportReady');
+    localStorage.removeItem('uploadError');
 
-    try {
-      const response = await fetch(`${API_BASE}/process_video`, {
-        method: 'POST',
-        body: formData,
-      });
+    // 2) Immediately show waiting page
+    localStorage.setItem('uploadInProgress', '1');
+    navigate('/analyzing?client=1'); // <- you should see Analyzing now
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Upload failed: ${errorText}`);
+    // 3) Kick off the upload in the background (next tick)
+    setTimeout(async () => {
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const res = await fetch(`${API_BASE}/process_video`, { method: 'POST', body: formData });
+        if (!res.ok) throw new Error(`Upload failed: ${await res.text()}`);
+        const data = await res.json();
+
+        // Optional future: if your backend returns a job id
+        const jobId = data.job_id || data.jobId;
+        if (jobId) {
+          navigate(`/analyzing?jobId=${encodeURIComponent(jobId)}`, { replace: true });
+          return;
+        }
+
+        // Synchronous case: stash and go to results
+        const reportText =
+          data.report_text || data.report || data.output || data.evaluation || data.message || '';
+
+        localStorage.setItem('latestReportText', reportText);
+        localStorage.setItem('latestReportMeta', JSON.stringify(data));
+        localStorage.setItem('latestReportReady', '1');
+        localStorage.setItem('uploadInProgress', '0');
+
+        navigate('/results', { state: { reportText, meta: data }, replace: true });
+      } catch (err) {
+        console.error(err);
+        localStorage.setItem('uploadError', err.message || 'Upload failed');
+        localStorage.setItem('uploadInProgress', '0');
+        // Analyzing page will show the error banner
+      } finally {
+        e.target.value = ''; // allow re-selecting the same file
       }
-
-      const result = await response.json();
-      console.log('✅ Server Response:', result);
-
-      setUploadResponse(result); // save result for display
-      alert('✅ Upload successful! Check the displayed result below.');
-    } catch (err) {
-      console.error('File upload failed:', err);
-      alert('❌ File upload failed. See console for details.');
-    }
-  };
-
-  // --- API testing functions ---
-  const fetchRoot = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/`);
-      const data = await res.json();
-      setRootMessage(data.message);
-    } catch (err) {
-      console.error(err);
-      setRootMessage('Error fetching /');
-    }
-  };
-
-  const fetchPing = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/ping`);
-      const text = await res.text();
-      setPingResponse(text);
-    } catch (err) {
-      console.error(err);
-      setPingResponse('Error fetching /ping');
-    }
-  };
-
-  const fetchTranscribe = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/transcribe_macbeth`);
-      const text = await res.text();
-      settranscriptResponse(text);
-    } catch (err) {
-      console.error(err);
-      settranscriptResponse('Error fetching /transcribe_macbeth');
-    }
-  };
-
-  const fetchEcho = async () => {
-    if (!echoText.trim()) return;
-    try {
-      const res = await fetch(`${API_BASE}/echo/${encodeURIComponent(echoText)}`);
-      const data = await res.json();
-      setEchoResponse(data.echo);
-    } catch (err) {
-      console.error(err);
-      setEchoResponse('Error fetching /echo');
-    }
+    }, 0);
   };
 
   return (
     <div className="landing-container" style={{ position: 'relative' }}>
-      <img src={top_left} alt="My Icon" className="top-left-svg" />
-      <img src={bottom_left} alt="My Icon" className="bottom-left-svg" />
-      <img src={right} alt="My Icon" className="right-svg" />
+      <img src={top_left} alt="" className="top-left-svg" />
+      <img src={bottom_left} alt="" className="bottom-left-svg" />
+      <img src={right} alt="" className="right-svg" />
 
       <header>
-        <h1>SODA POP</h1>
-        <p>Cool me down, you're so hot</p>
-        <p>Pour me up, I won't stop</p>
-        <p>You're my soda pop</p>
-        <p>My little soda pop</p>
+        <h1>BEYOND WORDS</h1>
+        <p>Multi-Modal AI-Driven Presentation Evaluator</p>
+        <p>What you say, how you sound, and how you look—measured together.</p>
 
         <div className="action-buttons">
           <button onClick={handleUploadVideo} className="action-btn upload-btn">Upload Video</button>
           <button onClick={handleRecordVideo} className="action-btn record-btn">Record Video</button>
         </div>
 
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-        />
+        {/* hidden file input */}
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
       </header>
 
-      {/* Display upload JSON result */}
-      {uploadResponse && (
-        <section className="upload-result">
-          <h3>📄 Upload Result</h3>
-          <pre>{JSON.stringify(uploadResponse, null, 2)}</pre>
-        </section>
-      )}
-
-      {/* API Testing Toggle */}
-      <div className="api-toggle-section">
-        <button 
-          onClick={() => setShowApiTesting(!showApiTesting)}
-          className="api-toggle-btn"
-        >
-          {showApiTesting ? '🔽 Hide API Testing' : '🔧 Show API Testing'}
-        </button>
-      </div>
-
-      {/* Collapsible API Testing Section */}
-      {showApiTesting && (
-        <section className="api-testing">
-          <h3>API Testing</h3>
-          <div className="api-buttons">
-            <button onClick={fetchRoot} className="api-btn">Test Root</button>
-            <button onClick={fetchPing} className="api-btn">Test Ping</button>
-            <button onClick={fetchTranscribe} className="api-btn">Test Transcribe</button>
-          </div>
-          
-          <div className="echo-section">
-            <input
-              type="text"
-              value={echoText}
-              onChange={(e) => setEchoText(e.target.value)}
-              placeholder="Type something to echo"
-              className="echo-input"
-            />
-            <button onClick={fetchEcho} className="api-btn">Test Echo</button>
-          </div>
-
-          {/* API Responses */}
-          <div className="api-responses">
-            {rootMessage && <div><strong>Root:</strong> {rootMessage}</div>}
-            {pingResponse && <div><strong>Ping:</strong> {pingResponse}</div>}
-            {transcriptResponse && <div><strong>Transcribe:</strong> {transcriptResponse}</div>}
-            {echoResponse && <div><strong>Echo:</strong> {echoResponse}</div>}
-          </div>
-        </section>
+      {showRecorder && (
+        <Recorder
+          apiBase={API_BASE}
+          onUploaded={handleRecorderUploaded}
+          onClose={() => setShowRecorder(false)}
+        />
       )}
     </div>
   );
