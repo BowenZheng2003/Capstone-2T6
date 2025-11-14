@@ -109,13 +109,14 @@ def run_pyfeat_on_frames(frame_dir="frames", output_csv="output/pyfeat_results.c
     os.makedirs(os.path.dirname(output_csv), exist_ok=True)
     results.to_csv(output_csv, index=False)
     print(f">>> py-feat results saved to: {os.path.abspath(output_csv)}")
+    return output_csv
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--frame_dir", default="frames")
-    ap.add_argument("--output_csv", default="output/pyfeat_results.csv")
-    args = ap.parse_args()
-    run_pyfeat_on_frames(args.frame_dir, args.output_csv)
+def get_csv(frame_dir: str = "frames", output_csv: str = "output/pyfeat_results.csv"):
+    # ap = argparse.ArgumentParser()
+    # ap.add_argument("--frame_dir", default="frames")
+    # ap.add_argument("--output_csv", default="output/pyfeat_results.csv")
+    # args = ap.parse_args()
+    run_pyfeat_on_frames(frame_dir, output_csv)
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

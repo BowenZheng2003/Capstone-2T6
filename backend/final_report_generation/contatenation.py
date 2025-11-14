@@ -1,4 +1,5 @@
 import json
+from collections import defaultdict
 
 def concatenate_streams(audio: str, video: str, text: str):
     """
@@ -23,31 +24,54 @@ def concatenate_streams(audio: str, video: str, text: str):
 
     """
     
-    files = [audio, video, text]
+    json_files = [audio, video, text]
     # Dictionary to merge by timestamp
-    merged_data = {}
+    
+    merged = defaultdict(dict)
 
-    # Go through each file
-    for f in files:
-        with open(f, "r") as infile:
-            data = json.load(infile)
+    # Load each file and merge by timestamp
+    for file_path in json_files:
+        with open(file_path) as f:
+            data = json.load(f)
             for entry in data:
-                ts = entry["timestamp"]
-                if ts not in merged_data:
-                    merged_data[ts] = {"timestamp": ts}
-                # Merge the rest of the fields into the same timestamp entry
+                if not isinstance(entry, dict):
+                    continue  # skip non-dict entries
+                ts = entry.get("timestamp")
+                if not ts:
+                    continue  # skip entries without timestamp
+
+                # Merge all keys except timestamp
                 for k, v in entry.items():
-                    if k != "timestamp":
-                        merged_data[ts][k] = v
+                    if k == "timestamp":
+                        continue
+                    if k in merged[ts] and isinstance(v, dict):
+                        merged[ts][k].update(v)
+                    elif k in merged[ts] and isinstance(v, str):
+                        merged[ts][k] = merged[ts][k] + " " + v
+                    else:
+                        merged[ts][k] = v
 
-    # Convert merged_data back into a list of dicts (if needed)
-    final_data = list(merged_data.values())
+    # Convert merged dict back to list of dicts
+    merged_list = [{"timestamp": ts, **vals} for ts, vals in merged.items()]
 
-    # Save to output file
-    with open("merged.json", "w") as outfile:
-        json.dump(final_data, outfile, indent=2)
+    # Optional: sort by start time
+    def parse_ts(ts):
+        start = ts.split("-")[0].strip()
+        if ":" in start:
+            mins, secs = start.split(":")
+            return int(mins) * 60 + int(secs)
+        return int(start)
 
-# test the function
-concatenate_streams(audio=r"C:\Users\Jeslyn\Downloads\audio.json",
-                    video=r"C:\Users\Jeslyn\Downloads\body_language.json",
-                    text=r"C:\Users\Jeslyn\Downloads\transcript.json")
+    merged_list.sort(key=lambda x: parse_ts(x["timestamp"]))
+
+    # Save merged JSON
+    with open("merged.json", "w") as f:
+        json.dump(merged_list, f, indent=2)
+
+    print("✅ Merged JSON saved to 'merged.json'")
+
+    return "merged.json"
+# # test the function
+# concatenate_streams(audio=r"C:\Users\Jeslyn\Downloads\audio.json",
+#                     video=r"C:\Users\Jeslyn\Downloads\body_language.json",
+#                     text=r"C:\Users\Jeslyn\Downloads\transcript.json")
