@@ -39,33 +39,38 @@ def transcribe_audio(file_path, model_size="base", output_json="transcript.json"
     print(f"✅ Transcription saved to {output_json}")
     return transcript_data
 
-def transcribe_audio_chunks(file_path, model_size="base", chunk_seconds=30, output_json="transcript.json"):
+def transcribe_audio_chunks(file_path, model_size="base", chunk_seconds=30, overlap_seconds=2.5, output_json="transcript.json"):
+    import math, json, whisper
+
     print(f"📥 Loading Whisper model ({model_size})...")
     model = whisper.load_model(model_size)
 
     print(f"🎧 Transcribing '{file_path}'...")
     result = model.transcribe(file_path)
 
-    # Determine total duration
     total_duration = math.ceil(result["segments"][-1]["end"]) if result["segments"] else 0
-    num_chunks = math.ceil(total_duration / chunk_seconds)
+
+    # Calculate the step between chunks (chunk_seconds minus overlap)
+    step = chunk_seconds - overlap_seconds
+    num_chunks = math.ceil((total_duration - overlap_seconds) / step)
 
     # Prepare empty chunks
-    chunks = [{"start": i*chunk_seconds, "end": min((i+1)*chunk_seconds, total_duration), "text": ""} 
-              for i in range(num_chunks)]
+    chunks = []
+    for i in range(num_chunks):
+        start = i * step
+        end = min(start + chunk_seconds, total_duration)
+        chunks.append({"start": start, "end": end, "text": ""})
 
-    # Assign each segment text to the correct chunk
+    # Assign each segment text to the correct chunks
     for seg in result["segments"]:
         seg_start = seg["start"]
         seg_end = seg["end"]
         text = seg["text"].strip()
 
-        # Find which chunks this segment belongs to
-        start_chunk = int(seg_start // chunk_seconds)
-        end_chunk = int(seg_end // chunk_seconds)
-        for i in range(start_chunk, end_chunk + 1):
-            if i < len(chunks):
-                chunks[i]["text"] += (" " + text).strip()
+        for chunk in chunks:
+            # Check if the segment overlaps with the chunk
+            if seg_end > chunk["start"] and seg_start < chunk["end"]:
+                chunk["text"] += (" " + text).strip()
 
     # Format final JSON
     transcript_data = []
@@ -85,7 +90,8 @@ def transcribe_audio_chunks(file_path, model_size="base", chunk_seconds=30, outp
         json.dump(transcript_data, f, indent=2)
 
     print(f"✅ Transcription saved to {output_json}")
-    return transcript_data
+    return output_json
+
 
 if __name__ == "__main__":
     #audio_file = record_audio(duration=5)

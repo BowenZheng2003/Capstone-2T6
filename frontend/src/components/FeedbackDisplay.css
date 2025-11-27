@@ -1,0 +1,172 @@
+/* src/components/FeedbackDisplay.css */
+.feedback-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.feedback-header {
+  border-bottom: 3px solid #6F6FDA;
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.feedback-header h2 {
+  font-size: 2.5rem;
+  color: #6F6FDA;
+  margin: 0 0 0.5rem 0;
+}
+
+.context {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.score-card {
+  background: linear-gradient(135deg, #8D8DE9 0%, #6F6FDA 100%);
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin-bottom: 2rem;
+  color: white;
+  text-align: center;
+}
+
+.score-value {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.score-label {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.summary-section {
+  background-color: #FFF6F2;
+  padding: 1.5rem;
+  border-radius: 15px;
+  margin-bottom: 2rem;
+  border-left: 5px solid #8D8DE9;
+}
+
+.summary-section h3 {
+  color: #6F6FDA;
+  font-size: 1.5rem;
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.summary-section p {
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.strengths-section,
+.problems-section {
+  margin-bottom: 2rem;
+}
+
+.strengths-section h3 {
+  color: #22C55E;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.problems-section h3 {
+  color: #EF4444;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.strength-item {
+  background-color: #F0FDF4;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #22C55E;
+}
+
+.problem-item {
+  background-color: #FEF2F2;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  border-left: 4px solid #EF4444;
+}
+
+.description {
+  color: #333;
+  margin: 0 0 1rem 0;
+  line-height: 1.6;
+  font-size: 1.05rem;
+}
+
+.evidence-tags,
+.evidence-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.evidence-item {
+  width: 100%;
+  margin-bottom: 0.8rem;
+}
+
+.timestamp-tag {
+  display: inline-block;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.strength-tag {
+  background-color: #22C55E;
+}
+
+.problem-tag {
+  background-color: #EF4444;
+}
+
+.suggestion-box {
+  background-color: white;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #555;
+  margin-top: 0.5rem;
+  border-left: 3px solid #8D8DE9;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .feedback-container {
+    padding: 1.5rem;
+    margin: 1rem;
+  }
+
+  .feedback-header h2 {
+    font-size: 2rem;
+  }
+
+  .score-value {
+    font-size: 2.5rem;
+  }
+}

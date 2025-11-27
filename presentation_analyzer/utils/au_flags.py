@@ -153,7 +153,7 @@ def sparsify_clusters(cluster_rates: Dict[str, float], min_rate: float) -> Dict[
     return {k: round(float(v), 2) for k, v in cluster_rates.items() if v is not None and float(v) >= min_rate}
 
 # ---------- Main ----------
-def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
+def extract_video_features_to_json(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
          verbose: bool, print_cols: bool, dump_stats: bool, sample_n: int,
          fps: float, win_sec: float, hop_sec: float,
          emo_min: float, emo_margin: float, cluster_min_rate: float,
@@ -307,35 +307,105 @@ def main(in_csv: str, out_json: str, thr_hi: float, thr_lo: float,
     print(f"[done] Wrote {out_json} with {len(segments_out)} segments.")
 
 
-if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--in_csv", required=True)
-    ap.add_argument("--out_json", required=True)
+# if __name__ == "__main__":
+#     ap = argparse.ArgumentParser()
+#     ap.add_argument("--in_csv", required=True)
+#     ap.add_argument("--out_json", required=True)
 
-    ap.add_argument("--thr_hi", type=float, default=DEFAULTS["thr_hi"])
-    ap.add_argument("--thr_lo", type=float, default=DEFAULTS["thr_lo"])
+#     ap.add_argument("--thr_hi", type=float, default=DEFAULTS["thr_hi"])
+#     ap.add_argument("--thr_lo", type=float, default=DEFAULTS["thr_lo"])
 
-    ap.add_argument("--verbose", action="store_true")
-    ap.add_argument("--print_cols", action="store_true")
-    ap.add_argument("--dump_stats", action="store_true")
-    ap.add_argument("--sample_n", type=int, default=5)
+#     ap.add_argument("--verbose", action="store_true")
+#     ap.add_argument("--print_cols", action="store_true")
+#     ap.add_argument("--dump_stats", action="store_true")
+#     ap.add_argument("--sample_n", type=int, default=5)
 
-    ap.add_argument("--fps", type=float, default=DEFAULTS["fps"])
-    ap.add_argument("--win_sec", type=float, default=DEFAULTS["win_sec"])
-    ap.add_argument("--hop_sec", type=float, default=DEFAULTS["hop_sec"])
+#     ap.add_argument("--fps", type=float, default=DEFAULTS["fps"])
+#     ap.add_argument("--win_sec", type=float, default=DEFAULTS["win_sec"])
+#     ap.add_argument("--hop_sec", type=float, default=DEFAULTS["hop_sec"])
 
-    ap.add_argument("--emo_min", type=float, default=DEFAULTS["emo_min"])
-    ap.add_argument("--emo_margin", type=float, default=DEFAULTS["emo_margin"])
-    ap.add_argument("--cluster_min_rate", type=float, default=DEFAULTS["cluster_min_rate"])
+#     ap.add_argument("--emo_min", type=float, default=DEFAULTS["emo_min"])
+#     ap.add_argument("--emo_margin", type=float, default=DEFAULTS["emo_margin"])
+#     ap.add_argument("--cluster_min_rate", type=float, default=DEFAULTS["cluster_min_rate"])
 
-    ap.add_argument("--prefer_frame_time", action="store_true",
-                    help="Use frame/FPS-derived time even if a timestamp column exists")
-    ap.add_argument("--include_frames", action="store_true",
-                    help="Include per-frame JSON records")
+#     ap.add_argument("--prefer_frame_time", action="store_true",
+#                     help="Use frame/FPS-derived time even if a timestamp column exists")
+#     ap.add_argument("--include_frames", action="store_true",
+#                     help="Include per-frame JSON records")
 
-    args = ap.parse_args()
-    main(args.in_csv, args.out_json, args.thr_hi, args.thr_lo,
-         args.verbose, args.print_cols, args.dump_stats, args.sample_n,
-         args.fps, args.win_sec, args.hop_sec,
-         args.emo_min, args.emo_margin, args.cluster_min_rate,
-         args.prefer_frame_time, args.include_frames)
+#     args = ap.parse_args()
+#     extract_video_features_to_json(args.in_csv, args.out_json, args.thr_hi, args.thr_lo,
+#          args.verbose, args.print_cols, args.dump_stats, args.sample_n,
+#          args.fps, args.win_sec, args.hop_sec,
+#          args.emo_min, args.emo_margin, args.cluster_min_rate,
+#          args.prefer_frame_time, args.include_frames)
+
+
+from presentation_analyzer.utils.frame_extraction import extract_frames
+from presentation_analyzer.utils.pyfeat_runner import run_pyfeat_on_frames
+
+def end_to_end_video(video_path: str,
+                     json_out_path: str = None,
+                     thr_hi: float = DEFAULTS["thr_hi"],
+                     thr_lo: float = DEFAULTS["thr_lo"],
+                     fps: float = DEFAULTS["fps"],
+                     win_sec: float = DEFAULTS["win_sec"],
+                     hop_sec: float = DEFAULTS["hop_sec"],
+                     emo_min: float = DEFAULTS["emo_min"],
+                     emo_margin: float = DEFAULTS["emo_margin"],
+                     cluster_min_rate: float = DEFAULTS["cluster_min_rate"],
+                     include_frames: bool = False,
+                     verbose: bool = False) -> str:
+    """
+    Takes an input video, extracts AUs, then runs extract_video_features_to_json.
+    Returns the JSON output file path.
+    """
+    video_path = Path(video_path)
+    if not video_path.exists():
+        raise FileNotFoundError(video_path)
+    
+    frames_dir = extract_frames(video_path=video_path)
+    csv_path = "presentation_analyzer/output/pyfeat_results.csv"
+    run_pyfeat_on_frames(frame_dir=frames_dir, output_csv=csv_path)
+
+    # 1. Decide where to write the intermediate AU CSV
+    # tmp_dir = tempfile.mkdtemp(prefix="au_features_")
+    # au_csv_path = Path(tmp_dir) / (csv_path)
+    # au_csv_path.parent.mkdir(parents=True, exist_ok=True)  # <- make sure directory exists
+
+    # 2. Run your AU extractor here (this is just an example, adjust to your pipeline)
+    # Example using py-feat CLI:
+    # subprocess.run(["feat", "extract", "-i", str(video_path), "-o", str(au_csv_path)], check=True)
+    #
+    # Or, if you already have a Python function to extract AUs:
+    # my_extract_aus(video_path, au_csv_path)
+
+    # 3. Decide on JSON output path
+    if json_out_path is None:
+        json_out_path = (video_path.stem + "_features.json")
+    else:
+        json_out_path = Path(json_out_path)
+
+    # 4. Run your existing extraction function
+    extract_video_features_to_json(
+        in_csv=str(csv_path),
+        out_json=str(json_out_path),
+        thr_hi=thr_hi,
+        thr_lo=thr_lo,
+        verbose=verbose,
+        print_cols=False,
+        dump_stats=False,
+        sample_n=5,
+        fps=fps,
+        win_sec=win_sec,
+        hop_sec=hop_sec,
+        emo_min=emo_min,
+        emo_margin=emo_margin,
+        cluster_min_rate=cluster_min_rate,
+        include_frames=include_frames,
+        prefer_frame_time=True,
+    )
+
+    return str(json_out_path)
+
+# json_path = end_to_end_video(r"C:\Users\Jeslyn\OneDrive\Desktop\capstone\Capstone-2T6\IMG_4027.MOV", include_frames=True, verbose=True)
