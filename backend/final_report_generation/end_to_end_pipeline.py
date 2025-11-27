@@ -6,7 +6,6 @@ from backend.final_report_generation.LLM_prompting import call_deepseek
 import json
 
 def generate_full_report(input_video: str):
-    print("HERE")
     audio_file = audio_extraction.extract_mp3(input_file=input_video) #get the audio from the video file
 
     print(audio_file)
@@ -38,3 +37,5 @@ def generate_full_report(input_video: str):
     report = call_deepseek(merged_json=merged_json, context="coke rant") #for now this prints out deepseek's evaluation
 
     return report
+
+# generate_full_report("/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/IMG_4027 2.MOV")

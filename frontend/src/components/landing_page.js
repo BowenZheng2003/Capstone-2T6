@@ -4,6 +4,7 @@ import './LandingPage.css';
 import top_left from '../assets/Group 1.svg';
 import bottom_left from '../assets/Group 3.svg';
 import right from '../assets/Group 2.svg';
+import FeedbackDisplay from './FeedbackDisplay'; 
 
 function LandingPage() {
   const fileInputRef = useRef(null);
@@ -16,6 +17,7 @@ function LandingPage() {
   const [echoResponse, setEchoResponse] = useState('');
   const [showApiTesting, setShowApiTesting] = useState(false);
   const [uploadResponse, setUploadResponse] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const API_BASE = 'http://localhost:8000';
 
@@ -27,14 +29,14 @@ function LandingPage() {
     alert('Record Video functionality will be implemented soon!');
   };
 
-  // ✅ FIXED handleFileChange — no nested function
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     const formData = new FormData();
-    formData.append('file', file); // must match FastAPI param name
+    formData.append('file', file);
 
+    setIsProcessing(true); // Show loading
     try {
       const response = await fetch(`${API_BASE}/process_video`, {
         method: 'POST',
@@ -49,11 +51,12 @@ function LandingPage() {
       const result = await response.json();
       console.log('✅ Server Response:', result);
 
-      setUploadResponse(result); // save result for display
-      alert('✅ Upload successful! Check the displayed result below.');
+      setUploadResponse(result);
     } catch (err) {
       console.error('File upload failed:', err);
       alert('❌ File upload failed. See console for details.');
+    } finally {
+      setIsProcessing(false); // Hide loading
     }
   };
 
@@ -110,32 +113,41 @@ function LandingPage() {
       <img src={right} alt="My Icon" className="right-svg" />
 
       <header>
-        <h1>SODA POP</h1>
-        <p>Cool me down, you're so hot</p>
-        <p>Pour me up, I won't stop</p>
-        <p>You're my soda pop</p>
-        <p>My little soda pop</p>
+        <h1>TEAM 2025167</h1>
+        <p>Upload a video of your oral presentation</p>
+        <p>Wait a minute or two for your personalized feedback!</p>
 
         <div className="action-buttons">
-          <button onClick={handleUploadVideo} className="action-btn upload-btn">Upload Video</button>
-          <button onClick={handleRecordVideo} className="action-btn record-btn">Record Video</button>
+          <button 
+            onClick={handleUploadVideo} 
+            className="action-btn upload-btn"
+            disabled={isProcessing}
+          >
+            {isProcessing ? '⏳ Processing...' : 'Upload Video'}
+          </button>
+          <button onClick={handleRecordVideo} className="action-btn record-btn">
+            Record Video
+          </button>
         </div>
 
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
+          accept="video/*"
           style={{ display: 'none' }}
         />
       </header>
 
       {/* Display upload JSON result */}
-      {uploadResponse && (
-        <section className="upload-result">
-          <h3>📄 Upload Result</h3>
-          <pre>{JSON.stringify(uploadResponse, null, 2)}</pre>
-        </section>
+      {isProcessing && (
+        <div className="processing-indicator">
+          <div className="spinner"></div>
+          <p>Analyzing your presentation...</p>
+        </div>
       )}
+
+      <FeedbackDisplay data={uploadResponse} />
 
       {/* API Testing Toggle */}
       <div className="api-toggle-section">

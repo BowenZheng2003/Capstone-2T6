@@ -17,7 +17,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 app = FastAPI()
 
 origins = [
-    "http://localhost:3001",                        # for local React dev
+    "http://localhost:3000",                        # for local React dev
     #"https://capstone-backend-test.onrender.com", # if you deploy frontend to Render
 ]
 
