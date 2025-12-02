@@ -97,4 +97,4 @@ def get_audio_json(input_path: str):
     
     return output_path
 
-get_audio_json(input_path=r"/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/IMG_4027 2.MOV")
+#get_audio_json(input_path=r"/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/IMG_4027 2.MOV")

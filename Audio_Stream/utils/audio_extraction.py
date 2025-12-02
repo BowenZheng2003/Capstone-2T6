@@ -4,6 +4,7 @@ def extract_mp3(input_file: str, output_file: str = "output_audio.wav"):
     # Extract the audio as mp3 using ffmpeg
     subprocess.run([
         "ffmpeg",
+        "-y",
         "-i", input_file,  # input video
         "-q:a", "0",       # highest audio quality
         "-map", "a",       # select only audio streams

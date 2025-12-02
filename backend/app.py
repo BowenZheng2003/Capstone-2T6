@@ -1,86 +1,86 @@
-# in your FastAPI code (e.g. main.py)
-from fastapi import FastAPI
+# app.py
+from fastapi import FastAPI, File, UploadFile, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi import FastAPI, File, UploadFile, BackgroundTasks
+from pydantic import BaseModel
+import os, uuid, shutil, tempfile, traceback, sys
 
 from backend.whisper_testing import transcribe_audio
 from backend.final_report_generation.end_to_end_pipeline import generate_full_report
-import os
-import uuid
-import shutil
 
-
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
+# ---------- CORS ----------
 app = FastAPI()
-
-origins = [
-    "http://localhost:3001",                        # for local React dev
-    #"https://capstone-backend-test.onrender.com", # if you deploy frontend to Render
-]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=[
+        "http://localhost:3000",  # CRA dev
+        "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ---------- Simple test endpoints (JSON) ----------
 @app.get("/")
 async def root():
-    return JSONResponse({"message": "Hi Divas!"})
+    return {"ok": True, "service": "backend alive"}
 
 @app.get("/ping")
-async def ping() -> str:
-    return "pong"
-
-@app.get("/sodapop")
-async def ping() -> str:
-    return "You're all I can think of. Every drop I drink up. You're my soda pop. My little soda pop (Yeah, yeah). Cool me down, you're so hot. Pour me up, I won't stop (Oh, oh). You're my soda pop. My little soda pop"
+async def ping():
+    return {"pong": True}
 
 @app.get("/echo/{text}")
-async def echo(text: str) -> JSONResponse:
-    return JSONResponse({"echo": text})
+async def echo(text: str):
+    return {"echo": text}
 
 @app.get("/transcribe_macbeth")
-async def transcribe() -> str:
-    transcription = transcribe_audio("MacBeth_Voiceover.mp3")
-    return transcription
+async def transcribe():
+    return {"transcript": transcribe_audio("MacBeth_Voiceover.mp3")}
 
-# @app.post("/upload")
-# async def upload_file(file: UploadFile = File(...)):
-#     contents = await file.read()
-#     # Process the file here
-#     return {"filename": file.filename, "size": len(contents)}
-
+# ---------- Video processing ----------
 @app.post("/process_video")
-async def process_video(file: UploadFile = File(...), background_tasks: BackgroundTasks = None):
+async def process_video(
+    # accept either field name the frontend might use
+    background_tasks: BackgroundTasks,
+    video: UploadFile | None = File(default=None),
+    file: UploadFile | None = File(default=None),
+):
     """
-    Upload a video, save it temporarily, and run the end_to_end_pipeline.
+    Upload a video, save it temporarily, run the end-to-end pipeline, return the report.
+    Accepts `video` or `file` as the multipart field name.
     """
-
-    #return {"message": "Processing complete.", "report": "MOCK RESPONSE"}  # Remove this line when enabling the function below
     try:
-        # Save uploaded file to disk
-        file_ext = os.path.splitext(file.filename)[1]
-        unique_name = f"{uuid.uuid4().hex}{file_ext}"
-        temp_path = os.path.join(UPLOAD_DIR, unique_name)
+        upload = video or file
+        if upload is None:
+            raise HTTPException(status_code=400, detail="No file provided. Use form field 'file' or 'video'.")
 
-        with open(temp_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # Persist to a secure temp file
+        ext = os.path.splitext(upload.filename or "")[1] or ".bin"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=ext) as tmp:
+            shutil.copyfileobj(upload.file, tmp)
+            temp_path = tmp.name
 
-        # Option 1 — Run synchronously and return the result
+        # Make sure the temp file is removed after processing
+        
+        background_tasks.add_task(_safe_unlink, temp_path)
+
+        # Run your pipeline (this is where FFmpeg + Whisper already worked for you)
         report = generate_full_report(temp_path)
-        #report = open(report_path, "r").read()
-
-        # Option 2 — If pipeline is heavy, use background task:
-        # background_tasks.add_task(end_to_end_pipeline, temp_path)
-        # return {"message": "Video upload received. Processing in background."}
 
         return {"message": "Processing complete.", "report": report}
 
+    except HTTPException:
+        raise
     except Exception as e:
+        # Print full traceback to server logs AND expose message to client to debug quickly
+        traceback.print_exc(file=sys.stderr)
         return JSONResponse(status_code=500, content={"error": str(e)})
+
+def _safe_unlink(path: str) -> None:
+    try:
+        if path and os.path.exists(path):
+            os.unlink(path)
+    except Exception:
+        pass
