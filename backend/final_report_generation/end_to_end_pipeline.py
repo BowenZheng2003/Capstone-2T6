@@ -34,8 +34,8 @@ def generate_full_report(input_video: str):
     merged_json = concatenate_streams(audio=audio_json, video="video_segments.json", text=text_json)
     #print("HERE TOO")
     print(merged_json)
-    report = call_deepseek(merged_json=merged_json, context="coke rant") #for now this prints out deepseek's evaluation
+    report = call_deepseek(merged_json=merged_json, context="Explain how search engines pick which results to show.") #for now this prints out deepseek's evaluation
 
     return report
 
-# generate_full_report("/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/IMG_4027 2.MOV")
+# generate_full_report("/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/Movie on 2026-01-04 at 8.11 PM.mov")

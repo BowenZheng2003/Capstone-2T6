@@ -1,6 +1,8 @@
 import os
 from huggingface_hub import InferenceClient
 from backend.final_report_generation.string_cleaning import extract_and_save_json
+import json
+import json_repair
 
 def call_deepseek(context: str, merged_json: str):
     prompt = f"""
@@ -69,8 +71,27 @@ You MUST return your response in the following JSON format:
     )
 
     print(completion.choices[0].message)
+    llm_response = completion.choices[0].message.content
 
-    json_obj = extract_and_save_json(completion.choices[0].message.content, "deepseek_output.json")
+    #json_obj = extract_and_save_json(completion.choices[0].message.content, "deepseek_output.json")
+
+    start_index = llm_response.find('{')
+    end_index = llm_response.rfind('}') + 1 # +1 to include the closing brace
+
+    if start_index != -1 and end_index != -1:
+        json_str = llm_response[start_index:end_index]
+        try:
+            json_obj = json_repair.loads(json_str)
+        except Exception as e:
+            print(f"Failed to parse JSON even with repair: {e}")
+            # Handle failure (e.g., return empty dict or retry)
+            return {}
+        # json_obj = json.loads(json_str)
+
+        print(f"Score: {json_obj['score']}")
+        print(f"Summary: {json_obj['summary']}")
+    else:
+        print("No JSON object found in response")
 
     return json_obj
 
