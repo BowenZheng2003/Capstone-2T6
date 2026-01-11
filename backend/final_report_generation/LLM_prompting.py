@@ -49,6 +49,8 @@ You MUST return your response in the following JSON format:
         }}
     ]
 }}
+
+The score must be out of 10. Where 10 is the best score and 0 is the worst.
 """
 
 
