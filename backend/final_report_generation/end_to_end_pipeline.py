@@ -37,5 +37,3 @@ def generate_full_report(input_video: str):
     report = call_deepseek(merged_json=merged_json, context="Explain how search engines pick which results to show.") #for now this prints out deepseek's evaluation
 
     return report
-
-# generate_full_report("/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/Movie on 2026-01-04 at 8.11 PM.mov")

@@ -2,10 +2,12 @@
 import React from 'react';
 import './FeedbackDisplay.css';
 
-function FeedbackDisplay({ data }) {
-  if (!data || !data.report) return null;
-
-  const report = data.report;
+function FeedbackDisplay({ data, report: reportProp, raw, onBack }) {
+  // Support BOTH shapes:
+  // 1) old: <FeedbackDisplay data={uploadResponse} />
+  // 2) new: <FeedbackDisplay report={resultJson.report} raw={resultJson} />
+  const report = reportProp || data?.report || raw?.report;
+  if (!report) return null;
 
   const formatTimestamp = (seconds) => {
     if (typeof seconds === 'string') return seconds;
@@ -14,15 +16,43 @@ function FeedbackDisplay({ data }) {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // If backend ever returns 0–100, keep it sensible:
+  const scoreValue = typeof report.score === 'number' ? report.score : Number(report.score);
+  const displayScore =
+    Number.isFinite(scoreValue)
+      ? (scoreValue > 10 ? Math.round(scoreValue / 10) : scoreValue)
+      : report.score;
+
   return (
     <div className="feedback-container">
-      <div className="feedback-header">
-        <h2>📊 Presentation Feedback</h2>
-        <p className="context">{report.context}</p>
+      <div className="feedback-header" style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center' }}>
+        <div>
+          <h2 style={{ margin: 0 }}>📊 Presentation Feedback</h2>
+          <p className="context" style={{ marginTop: 6 }}>{report.context}</p>
+        </div>
+
+        {typeof onBack === 'function' && (
+          <button
+            onClick={onBack}
+            className="action-btn"
+            style={{
+              height: 42,
+              padding: '0 14px',
+              borderRadius: 12,
+              border: '1px solid #e5e7eb',
+              background: '#fff',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            ← Back
+          </button>
+        )}
       </div>
 
       <div className="score-card">
-        <div className="score-value">{report.score}/10</div>
+        <div className="score-value">{displayScore}/10</div>
         <div className="score-label">Overall Score</div>
       </div>
 

@@ -407,5 +407,3 @@ def end_to_end_video(video_path: str,
     )
 
     return str(json_out_path)
-
-# json_path = end_to_end_video(r"C:\Users\Jeslyn\OneDrive\Desktop\capstone\Capstone-2T6\IMG_4027.MOV", include_frames=True, verbose=True)

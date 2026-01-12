@@ -99,10 +99,6 @@ plt.show()
 
 import joblib
 
-# # Save DataFrame with cluster labels
-# combined_df["confidence_label"] = combined_df["cluster"].map(cluster_labels)
-# combined_df.to_csv("C:/Users/Jeslyn/OneDrive/Desktop/capstone/Capstone-2T6/Audio_Stream/tmp/confidence_segments.csv", index=False)
-
 # Save the trained scaler
 joblib.dump(scaler, "C:/Users/Jeslyn/OneDrive/Desktop/capstone/Capstone-2T6/Audio_Stream/tmp/confidence_scaler.pkl")
 

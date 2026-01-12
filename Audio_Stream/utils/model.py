@@ -1,6 +1,9 @@
 import joblib
 import pandas as pd
 import numpy as np
+from pathlib import Path
+
+UTILS_DIR = Path(__file__).resolve().parent  # Audio_Stream/utils
 
 def load_model(type: str):
     """
@@ -15,16 +18,16 @@ def load_model(type: str):
             - predictor: Pre-trained machine learning model (KMeans or RandomForest) for predictions
     """
     if type == 'emotion':
-        scaler = joblib.load(r'/Users/jeslyn/Desktop/projects/Capstone-2T6/Audio_Stream/utils/weights/emotion_scaler.pkl')
-        predictor = joblib.load(r'/Users/jeslyn/Desktop/projects/Capstone-2T6/Audio_Stream/utils/weights/emotion_kmeans_model.pkl')
+        scaler = joblib.load(UTILS_DIR / "emotion_scaler.pkl")
+        predictor = joblib.load(UTILS_DIR / "emotion_kmeans_model.pkl")
 
     elif type == 'confidence':
-        scaler = joblib.load(r'/Users/jeslyn/Desktop/projects/Capstone-2T6/Audio_Stream/utils/weights/confidence_scaler.pkl')
-        predictor = joblib.load(r'/Users/jeslyn/Desktop/projects/Capstone-2T6/Audio_Stream/utils/weights/kmeans_model.pkl')
+        scaler = joblib.load(UTILS_DIR / "confidence_scaler.pkl")
+        predictor = joblib.load(UTILS_DIR / "kmeans_model.pkl")
 
     elif type == 'delivery':
-        scaler = joblib.load(r'/Users/jeslyn/Desktop/projects/Capstone-2T6/Audio_Stream/utils/weights/delivery_scaler.pkl')
-        predictor = joblib.load(r'/Users/jeslyn/Desktop/projects/Capstone-2T6/Audio_Stream/utils/weights/rf_model.pkl')
+        scaler = joblib.load(UTILS_DIR / "delivery_scaler.pkl")
+        predictor = joblib.load(UTILS_DIR / "rf_model.pkl")
 
     return scaler, predictor
 
@@ -120,38 +123,3 @@ def run_model(scaler, predictor, feature_cols, cluster_labels, segments, label):
         
         return df_segments[["timestamp", "cluster", label]]
 
-
-# # Your main code
-# import Audio_Stream.utils.processing as processing
-# from pydub import AudioSegment
-# from Audio_Stream.utils import audio_extraction
-
-# input_video = "/Users/jeslyn/Desktop/projects/Capstone-2T6/backend/IMG_4027 2.MOV"
-# audio_file = audio_extraction.extract_mp3(input_file=input_video)
-# audio = AudioSegment.from_file(audio_file)
-
-# # Base features (without stat prefix)
-# base_clarity_features = [
-#     "F0semitoneFrom27.5Hz_sma3nz_amean",
-#     "HNRdBACF_sma3nz_amean",
-#     "jitterLocal_sma3nz_amean",
-#     "shimmerLocaldB_sma3nz_amean",
-#     "loudness_sma3_amean",
-#     "mfcc1_sma3_amean",
-#     "mfcc2_sma3_amean",
-#     "mfcc3_sma3_amean"
-# ]
-
-# # Generate segments
-# segments = processing.segment_audio(audio, feature_cols=base_clarity_features)
-
-# # Debug: print first segment to see structure
-# print("First segment keys:", list(segments[0].keys()) if segments else "No segments")
-
-# scaler, predictor = load_model("delivery")
-# clarity_labels = ["Focused", "Authentic", "NotAwkward", "EngagingTone"]
-
-# result = run_model(scaler, predictor, feature_cols=base_clarity_features, 
-#                    cluster_labels=clarity_labels, segments=segments, label="delivery")
-
-# print(result)

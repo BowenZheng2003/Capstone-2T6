@@ -1,3 +1,9 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
 # Logs
 logs
 *.log
@@ -22,3 +28,21 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local artifacts / outputs
+uploads/
+frames/
+*.wav
+*.mp4
+*.mov
+*.MOV
+output*.json
+merged.json
+transcript.json
+video_segments.json
+processed_video.mp4
+recorded.wav
+tmp*_features.json
+
+# Local models/artifacts (keep local unless your team tracks them)
+*.pkl

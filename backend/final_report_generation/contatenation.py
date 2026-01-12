@@ -71,7 +71,3 @@ def concatenate_streams(audio: str, video: str, text: str):
     print("✅ Merged JSON saved to 'merged.json'")
 
     return "merged.json"
-# # test the function
-# concatenate_streams(audio=r"C:\Users\Jeslyn\Downloads\audio.json",
-#                     video=r"C:\Users\Jeslyn\Downloads\body_language.json",
-#                     text=r"C:\Users\Jeslyn\Downloads\transcript.json")
