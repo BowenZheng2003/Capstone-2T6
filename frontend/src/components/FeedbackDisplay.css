@@ -1,5 +1,6 @@
 /* src/components/FeedbackDisplay.css */
 .feedback-container {
+  font-family: 'Inter', system-ui, sans-serif;
   max-width: 900px;
   margin: 2rem auto;
   padding: 2rem;
@@ -12,10 +13,15 @@
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Header ── */
 .feedback-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
   border-bottom: 3px solid #6F6FDA;
   padding-bottom: 1.5rem;
   margin-bottom: 2rem;
@@ -33,6 +39,55 @@
   margin: 0;
 }
 
+/* ── Action buttons row ── */
+.header-actions {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-back {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 25px;
+  border: 2px solid #8D8DE9;
+  background: #fff;
+  color: #6F6FDA;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-back:hover {
+  background: #8D8DE9;
+  color: #fff;
+}
+
+.btn-save-pdf {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 25px;
+  border: none;
+  background: linear-gradient(135deg, #8D8DE9 0%, #6F6FDA 100%);
+  color: #fff;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.btn-save-pdf:hover {
+  opacity: 0.85;
+}
+
+/* ── Score card ── */
 .score-card {
   background: linear-gradient(135deg, #8D8DE9 0%, #6F6FDA 100%);
   padding: 1.5rem;
@@ -53,6 +108,7 @@
   opacity: 0.9;
 }
 
+/* ── Summary ── */
 .summary-section {
   background-color: #FFF6F2;
   padding: 1.5rem;
@@ -75,6 +131,7 @@
   font-size: 1.05rem;
 }
 
+/* ── Strengths / Problems ── */
 .strengths-section,
 .problems-section {
   margin-bottom: 2rem;
@@ -137,13 +194,8 @@
   font-weight: 600;
 }
 
-.strength-tag {
-  background-color: #22C55E;
-}
-
-.problem-tag {
-  background-color: #EF4444;
-}
+.strength-tag { background-color: #22C55E; }
+.problem-tag  { background-color: #EF4444; }
 
 .suggestion-box {
   background-color: white;
@@ -155,11 +207,16 @@
   border-left: 3px solid #8D8DE9;
 }
 
-/* Responsive */
+/* ── Responsive ── */
 @media (max-width: 768px) {
   .feedback-container {
     padding: 1.5rem;
     margin: 1rem;
+  }
+
+  .feedback-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .feedback-header h2 {
@@ -168,5 +225,42 @@
 
   .score-value {
     font-size: 2.5rem;
+  }
+}
+
+/* ── Print / Save as PDF ── */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .feedback-container {
+    margin: 0;
+    box-shadow: none;
+    border-radius: 0;
+    animation: none;
+    max-width: 100%;
+  }
+
+  .score-card {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .strength-item,
+  .problem-item,
+  .summary-section {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    break-inside: avoid;
+  }
+
+  .timestamp-tag {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }

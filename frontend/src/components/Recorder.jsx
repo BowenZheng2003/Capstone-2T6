@@ -9,6 +9,8 @@ export default function Recorder({ onDone, onClose }) {
   const [recording, setRecording] = useState(false);
   const [previewURL, setPreviewURL] = useState(null);
   const [error, setError] = useState("");
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
@@ -91,6 +93,8 @@ export default function Recorder({ onDone, onClose }) {
     };
 
     mr.start(250);
+    setElapsed(0);
+    timerRef.current = setInterval(() => setElapsed((s) => s + 1), 1000);
     setRecording(true);
   };
 
@@ -98,9 +102,10 @@ export default function Recorder({ onDone, onClose }) {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       mediaRecorderRef.current.stop();
     }
+    clearInterval(timerRef.current);
     setRecording(false);
     if (liveRef.current) liveRef.current.srcObject = null;
-    stopStream(); // turn camera off after stop
+    stopStream();
   };
 
   const reRecord = async () => {
@@ -132,6 +137,9 @@ export default function Recorder({ onDone, onClose }) {
     }
   };
 
+  const fmtTime = (s) =>
+    `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+
   return (
     <div style={styles.backdrop}>
       <div style={styles.modal}>
@@ -145,7 +153,7 @@ export default function Recorder({ onDone, onClose }) {
         </p>
 
         <div style={styles.videoShell}>
-          {!previewURL && <video ref={liveRef} playsInline muted style={styles.video} />}
+          {!previewURL && <video ref={liveRef} autoPlay playsInline muted style={styles.video} />}
           {previewURL && <video src={previewURL} controls playsInline style={styles.video} />}
         </div>
 
@@ -157,9 +165,12 @@ export default function Recorder({ onDone, onClose }) {
           )}
 
           {recording && (
-            <button style={styles.warn} onClick={stopRecording}>
-              ⏹ Stop
-            </button>
+            <>
+              <span style={styles.timer}>⏺ {fmtTime(elapsed)}</span>
+              <button style={styles.warn} onClick={stopRecording}>
+                ⏹ Stop
+              </button>
+            </>
           )}
 
           {!recording && previewURL && (
@@ -204,17 +215,18 @@ const styles = {
   },
   closeBtn: {
     position: "absolute",
-    top: 8,
-    right: 10,
+    top: 10,
+    right: 12,
     width: 36,
     height: 36,
     borderRadius: 18,
-    border: "1px solid #e5e7eb",
-    background: "#111827",
+    border: "none",
+    background: "#8D8DE9",
     color: "#fff",
-    fontSize: 22,
-    lineHeight: "32px",
-    textAlign: "center",
+    fontSize: 20,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     cursor: "pointer",
     zIndex: 1001,
   },
@@ -267,6 +279,18 @@ const styles = {
     padding: "10px 14px",
     fontWeight: 700,
     cursor: "pointer",
+  },
+  timer: {
+    display: "flex",
+    alignItems: "center",
+    fontVariantNumeric: "tabular-nums",
+    fontWeight: 700,
+    fontSize: 15,
+    color: "#B91C1C",
+    background: "#FEE2E2",
+    border: "1px solid #FCA5A5",
+    borderRadius: 10,
+    padding: "10px 14px",
   },
   errorBox: {
     marginTop: 10,

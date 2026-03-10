@@ -1,3 +1,4 @@
+import os
 from feat.detector import Detector
 import pandas as pd
 import numpy as np
@@ -6,7 +7,8 @@ import numpy as np
 detector = Detector()
 
 # Process video
-results = detector.detect_video(r"C:\Users\Jeslyn\OneDrive\Desktop\capstone\Capstone-2T6\presentation_analyzer\processed_video.mp4")  # or .detect_image("frame.jpg")
+_HERE = os.path.dirname(os.path.abspath(__file__))
+results = detector.detect_video(os.path.join(_HERE, "processed_video.mp4"))  # or .detect_image("frame.jpg")
 
 # --- Extract Features ---
 

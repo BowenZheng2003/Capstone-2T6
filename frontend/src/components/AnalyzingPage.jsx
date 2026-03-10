@@ -1,53 +1,31 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import "./AnalyzingPage.css";
+import topLeft from "../assets/Group 1.svg";
+import bottomLeft from "../assets/Group 3.svg";
+import rightImg from "../assets/Group 2.svg";
 
-const FALLBACK_MESSAGES = [
-  "Uploading your video…",
-  "Extracting audio…",
-  "Transcribing speech…",
-  "Extracting features…",
-  "Calling the LLM…",
-  "Generating final report…",
-];
-
-export default function AnalyzingPage({ file, apiBase, onCancel, onDone }) {
+export default function AnalyzingPage({ file, context, apiBase, onCancel, onDone }) {
   const [progress, setProgress] = useState(0);
-  const [phaseIndex, setPhaseIndex] = useState(0);
+  const [message, setMessage] = useState("Uploading your video…");
   const [error, setError] = useState("");
 
   const controllerRef = useRef(null);
-
-  const message = useMemo(
-    () => FALLBACK_MESSAGES[phaseIndex] || "Analyzing…",
-    [phaseIndex]
-  );
 
   useEffect(() => {
     if (!file) return;
 
     controllerRef.current = new AbortController();
     setProgress(0);
-    setPhaseIndex(0);
+    setMessage("Uploading your video…");
     setError("");
-
-    // simulated UI progress up to 90%
-    const phaseTimer = setInterval(
-      () => setPhaseIndex((i) => Math.min(i + 1, FALLBACK_MESSAGES.length - 1)),
-      3500
-    );
-
-    const progTimer = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 90) return p;
-        return p + Math.max(1, Math.round((90 - p) / 15));
-      });
-    }, 700);
 
     (async () => {
       try {
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("context", context || "General presentation");
 
-        const res = await fetch(`${apiBase}/process_video`, {
+        const res = await fetch(`${apiBase}/process_video_stream`, {
           method: "POST",
           body: formData,
           signal: controllerRef.current.signal,
@@ -58,28 +36,55 @@ export default function AnalyzingPage({ file, apiBase, onCancel, onDone }) {
           throw new Error(txt || `HTTP ${res.status}`);
         }
 
-        const json = await res.json();
-        setProgress(100);
-        onDone?.(json);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop(); // hold incomplete line for next chunk
+
+          for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            try {
+              const event = JSON.parse(line.slice(6));
+              if (event.step === "done") {
+                setProgress(100);
+                onDone?.(event);
+                return;
+              } else if (event.step === "error") {
+                setError(event.error || "Processing failed.");
+                return;
+              } else {
+                setProgress(event.progress);
+                setMessage(event.message);
+              }
+            } catch {
+              // skip malformed line
+            }
+          }
+        }
       } catch (e) {
         if (e?.name === "AbortError") return;
         setError(e?.message || "Processing failed.");
-      } finally {
-        clearInterval(phaseTimer);
-        clearInterval(progTimer);
       }
     })();
 
     return () => {
       controllerRef.current?.abort?.();
-      clearInterval(phaseTimer);
-      clearInterval(progTimer);
     };
   }, [apiBase, file, onDone]);
 
   return (
-    <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, fontFamily: "Inter, system-ui, Segoe UI, Arial" }}>
-      <div style={{ width: 620, maxWidth: "92%", background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 12px 40px rgba(0,0,0,0.08)" }}>
+    <div className="analyzing-bg">
+      <img src={topLeft} alt="" className="analyzing-top-left" />
+      <img src={bottomLeft} alt="" className="analyzing-bottom-left" />
+      <img src={rightImg} alt="" className="analyzing-right" />
+      <div style={{ position: "relative", zIndex: 1, width: 620, maxWidth: "92%", background: "#fff", borderRadius: 16, padding: 28, boxShadow: "0 12px 40px rgba(0,0,0,0.08)" }}>
         <h1 style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>Analyzing your video</h1>
         <p style={{ marginTop: 8, color: "#6B7280", fontSize: 14 }}>{message}</p>
 

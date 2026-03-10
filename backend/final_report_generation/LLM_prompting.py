@@ -63,7 +63,7 @@ The score must be out of 10. Where 10 is the best score and 0 is the worst.
     )
 
     completion = client.chat.completions.create(
-        model="deepseek-ai/DeepSeek-R1-0528-Qwen3-8B",
+        model="Qwen/Qwen2.5-72B-Instruct",
         messages=[
             {
                 "role": "user",

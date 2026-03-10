@@ -5,35 +5,36 @@ from backend.final_report_generation.contatenation import concatenate_streams
 from backend.final_report_generation.LLM_prompting import call_deepseek
 import json
 
-def generate_full_report(input_video: str):
-    audio_file = audio_extraction.extract_mp3(input_file=input_video) #get the audio from the video file
+def generate_full_report(input_video: str, on_progress=None, context: str = "General presentation"):
+    def emit(step, progress, message):
+        if on_progress:
+            on_progress({"step": step, "progress": progress, "message": message})
 
+    emit("start", 0, "Extracting audio…")
+    audio_file = audio_extraction.extract_mp3(input_file=input_video)
     print(audio_file)
-    
 
-    text_json = transcribe_audio_chunks(file_path=audio_file, chunk_seconds=5) #get the transcript json
+    emit("transcribing", 10, "Transcribing speech…")
+    text_json = transcribe_audio_chunks(file_path=audio_file, chunk_seconds=5)
+
+    emit("audio_features", 25, "Analyzing audio features…")
     audio_json = combined_pipeline.get_audio_json(input_path=audio_file)
+
+    emit("video_features", 45, "Analyzing video features…")
     video_json = end_to_end_video(video_path=input_video)
-    
 
-    # Load the full JSON
-    with open(video_json, "r") as f:  # replace with your file path
+    emit("merging", 80, "Merging data streams…")
+    with open(video_json, "r") as f:
         data = json.load(f)
-
-    # Suppose `data` is your full JSON object
     segments_only = data.get("segments", [])
-
-    # Save to a new JSON file
     with open("video_segments.json", "w") as f:
         json.dump(segments_only, f, indent=4)
 
-
-    print(audio_json, text_json, "video_segments.json")
-
-    #concatenate all json files into one merged json
     merged_json = concatenate_streams(audio=audio_json, video="video_segments.json", text=text_json)
-    #print("HERE TOO")
+    print(audio_json, text_json, "video_segments.json")
     print(merged_json)
-    report = call_deepseek(merged_json=merged_json, context="Explain how search engines pick which results to show.") #for now this prints out deepseek's evaluation
+
+    emit("llm", 85, "Generating your report…")
+    report = call_deepseek(merged_json=merged_json, context=context)
 
     return report

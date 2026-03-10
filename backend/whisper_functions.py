@@ -94,6 +94,7 @@ def transcribe_audio_chunks(file_path, model_size="base", chunk_seconds=30, over
 
 
 if __name__ == "__main__":
+    import os
     #audio_file = record_audio(duration=5)
-    audio_file = r"C:\Users\Jeslyn\OneDrive\Desktop\capstone\Capstone-2T6\backend\MacBeth_Voiceover.mp3"
+    audio_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "MacBeth_Voiceover.mp3")
     transcribe_audio_chunks(file_path=audio_file, chunk_seconds=5)
