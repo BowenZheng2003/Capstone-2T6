@@ -48,11 +48,14 @@ export default function ReviewPage({ file, onSubmit, onBack }) {
           </h2>
 
           {isRecorded && previewURL ? (
-            <video
-              src={previewURL}
-              controls
-              className="review-video"
-            />
+            <div className="review-video-wrapper">
+              <video
+                src={previewURL}
+                controls
+                playsInline
+                className="review-video"
+              />
+            </div>
           ) : (
             <div className="review-file-info">
               <span className="review-file-icon">🎬</span>
@@ -99,10 +102,12 @@ export default function ReviewPage({ file, onSubmit, onBack }) {
         {/* Actions */}
         <div className="review-actions">
           <button className="review-btn-back" onClick={onBack} type="button">
-            ← Back
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:'5px',verticalAlign:'middle'}}><polyline points="15 18 9 12 15 6"/></svg>
+            Back
           </button>
           <button className="review-btn-submit" onClick={handleSubmit} type="button">
-            Analyze my presentation →
+            Analyze Presentation
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginLeft:'6px',verticalAlign:'middle'}}><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
 

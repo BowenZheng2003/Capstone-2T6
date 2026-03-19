@@ -4,6 +4,15 @@ import topLeft from "../assets/Group 1.svg";
 import bottomLeft from "../assets/Group 3.svg";
 import rightImg from "../assets/Group 2.svg";
 
+const STAGES = [
+  { label: "Upload",     at: 0 },
+  { label: "Audio",      at: 10 },
+  { label: "Transcribe", at: 25 },
+  { label: "Visuals",    at: 45 },
+  { label: "Report",     at: 80 },
+  { label: "Done",       at: 100 },
+];
+
 export default function AnalyzingPage({ file, context, apiBase, onCancel, onDone }) {
   const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("Uploading your video…");
@@ -95,6 +104,31 @@ export default function AnalyzingPage({ file, context, apiBase, onCancel, onDone
 
         <div style={{ height: 10, width: "100%", background: "#EEEAFB", borderRadius: 999, overflow: "hidden" }}>
           <div style={{ height: "100%", width: `${progress}%`, background: "#9089FC", transition: "width .35s ease" }} />
+        </div>
+
+        {/* Stage labels */}
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
+          {STAGES.map((stage) => {
+            const active = progress >= stage.at;
+            return (
+              <div key={stage.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                <div style={{
+                  width: 10, height: 10, borderRadius: "50%",
+                  background: active ? "#9089FC" : "#EEEAFB",
+                  border: `2px solid ${active ? "#9089FC" : "#C4BBF7"}`,
+                  transition: "background .35s ease, border-color .35s ease",
+                }} />
+                <span style={{
+                  fontSize: 10,
+                  color: active ? "#6F6FDA" : "#B0AACF",
+                  fontWeight: active ? 600 : 400,
+                  transition: "color .35s ease",
+                }}>
+                  {stage.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
 
         <div style={{ marginTop: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>

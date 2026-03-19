@@ -36,35 +36,45 @@ export default function App() {
 
   if (page === "review") {
     return (
-      <ReviewPage
-        file={file}
-        onSubmit={handleReviewSubmit}
-        onBack={handleBack}
-      />
+      <div key="review" className="page-transition">
+        <ReviewPage
+          file={file}
+          onSubmit={handleReviewSubmit}
+          onBack={handleBack}
+        />
+      </div>
     );
   }
 
   if (page === "analyzing") {
     return (
-      <AnalyzingPage
-        file={file}
-        context={context}
-        apiBase={API_BASE}
-        onCancel={handleBack}
-        onDone={handleDone}
-      />
+      <div key="analyzing" className="page-transition">
+        <AnalyzingPage
+          file={file}
+          context={context}
+          apiBase={API_BASE}
+          onCancel={handleBack}
+          onDone={handleDone}
+        />
+      </div>
     );
   }
 
   if (page === "feedback") {
     return (
-      <FeedbackDisplay
-        report={result?.report}
-        raw={result}
-        onBack={handleBack}
-      />
+      <div key="feedback" className="page-transition">
+        <FeedbackDisplay
+          report={result?.report}
+          raw={result}
+          onBack={handleBack}
+        />
+      </div>
     );
   }
 
-  return <LandingPage onFileReady={handleFileReady} />;
+  return (
+    <div key="landing" className="page-transition">
+      <LandingPage onFileReady={handleFileReady} />
+    </div>
+  );
 }

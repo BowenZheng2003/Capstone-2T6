@@ -160,15 +160,20 @@ export default function Recorder({ onDone, onClose }) {
         <div style={styles.controls}>
           {!recording && !previewURL && (
             <button style={styles.primary} onClick={startRecording}>
-              ⏺ Start
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:6,verticalAlign:'middle'}}><circle cx="12" cy="12" r="8"/></svg>
+              Start Recording
             </button>
           )}
 
           {recording && (
             <>
-              <span style={styles.timer}>⏺ {fmtTime(elapsed)}</span>
+              <span style={styles.timer}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:6,verticalAlign:'middle'}}><circle cx="12" cy="12" r="8"/></svg>
+                {fmtTime(elapsed)}
+              </span>
               <button style={styles.warn} onClick={stopRecording}>
-                ⏹ Stop
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:6,verticalAlign:'middle'}}><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+                Stop
               </button>
             </>
           )}
@@ -176,10 +181,12 @@ export default function Recorder({ onDone, onClose }) {
           {!recording && previewURL && (
             <>
               <button style={styles.secondary} onClick={reRecord}>
-                🔁 Re-record
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:6,verticalAlign:'middle'}}><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+                Re-record
               </button>
               <button style={styles.primary} onClick={useRecording}>
-                ✅ Use this recording
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginRight:6,verticalAlign:'middle'}}><polyline points="20 6 9 17 4 12"/></svg>
+                Use this recording
               </button>
             </>
           )}
@@ -254,6 +261,8 @@ const styles = {
     flexWrap: "wrap",
   },
   primary: {
+    display: "inline-flex",
+    alignItems: "center",
     background: "#4F46E5",
     color: "#fff",
     border: "none",
@@ -263,6 +272,8 @@ const styles = {
     cursor: "pointer",
   },
   secondary: {
+    display: "inline-flex",
+    alignItems: "center",
     background: "#EEF2FF",
     color: "#4338CA",
     border: "1px solid #E0E7FF",
@@ -272,6 +283,8 @@ const styles = {
     cursor: "pointer",
   },
   warn: {
+    display: "inline-flex",
+    alignItems: "center",
     background: "#FEE2E2",
     color: "#B91C1C",
     border: "1px solid #FCA5A5",

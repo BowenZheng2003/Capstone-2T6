@@ -20,10 +20,16 @@
   margin: 0 0 1rem 0;
 }
 
+.review-video-wrapper {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  line-height: 0;
+}
+
 .review-video {
   width: 100%;
-  border-radius: 12px;
-  background: #000;
+  display: block;
   max-height: 300px;
 }
 
