@@ -13,7 +13,12 @@ import os, glob
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-features_folder = r'C:\Users\Jeslyn\OneDrive\Desktop\capstone\Capstone-2T6\Audio_Stream\tmp\Segmented Interview Information-20250809T205338Z-1-001\Segmented Interview Information'
+_AUDIO_STREAM_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+features_folder = os.path.join(
+    _AUDIO_STREAM_DIR, "tmp",
+    "Segmented Interview Information-20250809T205338Z-1-001",
+    "Segmented Interview Information"
+)
 feature_files = glob.glob(os.path.join(features_folder, "*_all_features.csv"))
 
 clarity_features = [
@@ -71,7 +76,7 @@ if len(agg_data) == 0:
 agg_features_df = pd.DataFrame(agg_data)
 
 # Load scores
-score_path = r"C:\Users\Jeslyn\OneDrive\Desktop\capstone\Capstone-2T6\Audio_Stream\tmp\turker_scores_full_interview.csv"
+score_path = os.path.join(_AUDIO_STREAM_DIR, "tmp", "turker_scores_full_interview.csv")
 scores_df = pd.read_csv(score_path)
 scores_df["Participant"] = scores_df["Participant"].astype(str).str.lower().str.strip()
 
@@ -145,7 +150,7 @@ for i, label in enumerate(clarity_labels):
     print(f"  Mean MAE: {np.mean(mae_scores[:, i]):.3f}")
 
 # Save the trained scaler
-joblib.dump(scaler, "C:/Users/Jeslyn/OneDrive/Desktop/capstone/Capstone-2T6/Audio_Stream/tmp/delivery_scaler.pkl")
+joblib.dump(scaler, os.path.join(_AUDIO_STREAM_DIR, "tmp", "delivery_scaler.pkl"))
 
-# Save the trained KMeans model
-joblib.dump(multi_rf, "C:/Users/Jeslyn/OneDrive/Desktop/capstone/Capstone-2T6/Audio_Stream/tmp/rf_model.pkl")
+# Save the trained model
+joblib.dump(multi_rf, os.path.join(_AUDIO_STREAM_DIR, "tmp", "rf_model.pkl"))

@@ -35,3 +35,5 @@ def extract_frames(
 
     cap.release()
     print(f"[✓] Extracted {saved_frame_idx} frames to '{output_dir}'")
+
+    return output_dir

@@ -110,4 +110,4 @@ def create_json_output(merged_df, target_columns, join_col="timestamp", filename
     with open(file_path, "w") as f:
         f.write(json_str)
 
-    return json_str
+    return file_path

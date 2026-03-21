@@ -30,6 +30,4 @@ def transcribe_audio(file_path, model_size="base"):
     return result["text"]
 
 if __name__ == "__main__":
-    #audio_file = record_audio(duration=5)
-    #audio_file = "C:\Users\Jeslyn\Downloads\Recording (32).m4a"
     transcribe_audio("tmp")
